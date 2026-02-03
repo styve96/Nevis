@@ -1,0 +1,4276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion VIP - Nanawax</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        #loginScreen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .login-container .subtitle {
+            text-align: center;
+            color: #999;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #5568d3;
+        }
+
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #appContainer {
+            display: none;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info span {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            padding: 0 20px;
+        }
+
+        .nav-tabs button {
+            padding: 15px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #999;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-tabs button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .nav-tabs button:hover {
+            color: #667eea;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+            color: black;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: rgb(10, 10, 10);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .table thead {
+            background: #f8f9fa;
+        }
+
+        .table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .toast-success {
+            background: #27ae60;
+        }
+
+        .toast-error {
+            background: #e74c3c;
+        }
+
+        .toast-warning {
+            background: #f39c12;
+        }
+
+        .toast-info {
+            background: #3498db;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                overflow-x: auto;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form {
+                grid-template-columns: 1fr;
+            }
+
+            .table {
+                font-size: 12px;
+            }
+
+            .table th, .table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion VIP - Nanawax</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        #loginScreen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .btn-success { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .btn-warning { background: linear-gradient(135deg, #ffc107 0%, #ffd54f 100%); color: black; }
+        .btn-danger { background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%); }
+        .btn-info { background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%); }
+        .btn-secondary { background: linear-gradient(135deg, #6c757d 0%, #495057 100%); }
+
+        .app-header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notifications {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notif-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px 0;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .tab:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tab.active {
+            background: rgba(255,255,255,0.2);
+            border-left-color: #667eea;
+        }
+
+        .content {
+            flex: 1;
+            padding: 30px;
+            background: #f8f9fa;
+            overflow-y: auto;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            border-top: 5px solid #667eea;
+        }
+
+        .stat-card h3 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-secondary {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-collapse: collapse;
+        }
+
+        table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #f0f8ff;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-badge {
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .user-role-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .role-admin {
+            background: #dc3545;
+            color: white;
+        }
+
+        .role-manager {
+            background: #28a745;
+            color: white;
+        }
+
+        .role-boutique {
+            background: #ffc107;
+            color: black;
+        }
+
+        .role-vendeur {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .notifications-panel {
+            position: fixed;
+            top: 70px;
+            right: 30px;
+            width: 350px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+        }
+
+        .notifications-panel.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+
+        .filter-bar .btn {
+            width: auto;
+            padding: 10px 15px;
+        }
+
+        .form-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .quick-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                overflow-x: auto;
+                display: flex;
+                padding: 10px;
+            }
+            
+            .tab {
+                white-space: nowrap;
+                padding: 10px 15px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-bar input,
+            .filter-bar select {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Écran de connexion -->
+    <div id="loginScreen" style="display: flex;">
+        <div class="login-container">
+            <h1>Gestion VIP Nanawax</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" required placeholder="Entrez votre nom d'utilisateur">
+                </div>
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" required placeholder="Entrez votre mot de passe">
+                </div>
+                <div class="form-group">
+                    <label for="loginBoutique">Boutique (optionnel)</label>
+                    <select id="loginBoutique">
+                        <option value="">-- Sélectionner une boutique --</option>
+                        <option value="Cotonou">Cotonou</option>
+                        <option value="Lomé">Lomé</option>
+                        <option value="ITC">ITC</option>
+                        <option value="Angré">Angré</option>
+                        <option value="La Maison">La Maison</option>
+                        <option value="Dakar">Dakar</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Se connecter</button>
+            </form>
+            <div style="margin-top: 20px; text-align: center; color: #666; font-size: 14px;">
+                <p>Identifiants de test :</p>
+                <p>• Admin: admin / admin123</p>
+                <p>• Manager: manager / manager123</p>
+                <p>• Vendeur: vendeur / vendeur123 (boutique: Cotonou)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application principale -->
+    <div id="appContainer" style="display: none;">
+        <header class="app-header">
+                <div class="logo">
+                <span class="material-icons">emoji_events</span>
+                <span>Nanawax VIP</span>
+            </div>
+            <div class="user-info">
+                <div class="notifications" onclick="showNotifications(event)">
+                    <span class="material-icons">notifications</span>
+                    <div id="notifCount" class="notif-count" style="display: none;">0</div>
+                </div>
+                <div id="currentUserInfo"></div>
+                <button onclick="logout()" class="btn btn-danger btn-sm">Déconnexion</button>
+            </div>
+        </header>
+
+        <!-- Panneau des notifications -->
+        <div id="notificationsPanel" class="notifications-panel">
+            <div style="padding: 20px; border-bottom: 1px solid #eee;">
+                <h3 style="display: flex; justify-content: space-between; align-items: center;">
+                    Notifications
+                    <button onclick="clearAllNotifications()" style="background: none; border: none; color: #666; cursor: pointer; font-size: 14px;">
+                        Tout effacer
+                    </button>
+                </h3>
+            </div>
+            <div id="notificationsList" style="max-height: 400px; overflow-y: auto;"></div>
+        </div>
+
+        <div class="main-container">
+            <!-- Barre latérale -->
+            <nav class="sidebar">
+                <div class="tab active" data-permission="view_reports" onclick="switchTab('dashboard')">
+                    <span class="material-icons">trending_up</span> Tableau de bord
+                </div>
+                <div class="tab" data-permission="view_clients" onclick="switchTab('clients')">
+                    <span class="material-icons">person</span> Clients VIP
+                    <div id="clientsNotification" class="tab-badge"></div>
+                </div>
+                <div class="tab" data-permission="view_cards" onclick="switchTab('cartes')">
+                    <span class="material-icons">confirmation_number</span> Cartes de fidélité
+                    <div id="cartesNotification" class="tab-badge"></div>
+                </div>
+                <div class="tab" data-permission="add_purchases" onclick="switchTab('achats')">
+                    <span class="material-icons">shopping_cart</span> Achats
+                </div>
+                <div class="tab" data-permission="manage_gifts" onclick="switchTab('cadeaux')">
+                    <span class="material-icons">card_giftcard</span> Cadeaux
+                    <div id="cadeauxNotification" class="tab-badge"></div>
+                </div>
+                <div class="tab" data-permission="view_logs" onclick="switchTab('journal')">
+                    <span class="material-icons">book</span> Journal
+                </div>
+                <div class="tab" data-permission="manage_users" onclick="switchTab('utilisateurs')">
+                    <span class="material-icons">people</span> Utilisateurs
+                </div>
+                <div class="tab" data-permission="export_data" onclick="switchTab('export')">
+                    <span class="material-icons">upload</span> Export
+                </div>
+                <div class="tab" onclick="switchTab('profil')">
+                    <span class="material-icons">settings</span> Mon profil
+                </div>
+            </nav>
+
+            <!-- Contenu principal -->
+            <main class="content">
+                <!-- Tableau de bord -->
+                <section id="dashboard" class="content-section active">
+                    <div class="section-header">
+                        <h2><span class="material-icons">trending_up</span> Tableau de bord VIP</h2>
+                        <p style="color: #666; margin-top: 10px;">Aperçu général du système de fidélité</p>
+                    </div>
+                    
+                    <div id="statsGrid" class="stats-grid"></div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px;">
+                        <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 20px;"> Top 5 Clients</h3>
+                            <div id="topClients"></div>
+                        </div>
+                        <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+                            <h3 style="margin-bottom: 20px;"><span class="material-icons">access_time</span> Activité récente</h3>
+                            <div id="activiteRecent"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-top: 30px;">
+                        <h3 style="margin-bottom: 20px;"><span class="material-icons">trending_up</span> Évolution des inscriptions</h3>
+                        <canvas id="evolutionChart" height="100"></canvas>
+                    </div>
+                    
+                    <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-top: 30px;">
+                        <h3 style="margin-bottom: 20px;"><span class="material-icons">storefront</span> Statistiques par boutique</h3>
+                        <table id="tableBoutiques">
+                            <thead>
+                                <tr>
+                                    <th>Boutique</th>
+                                    <th>Clients</th>
+                                    <th>Cartes en cours</th>
+                                    <th>Cartes complètes</th>
+                                    <th>Cadeaux remis</th>
+                                    <th>CA Total</th>
+                                    <th>Panier moyen</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Section Clients -->
+                <section id="clients" class="content-section">
+                    <div class="section-header">
+                        <h2><span class="material-icons">person</span> Gestion des Clients VIP</h2>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" onclick="showAddClientForm()">
+                                + Ajouter un client
+                            </button>
+                            <button class="btn btn-warning" onclick="showEditClientForm()">
+                                <span class="material-icons">edit</span> Modifier un client
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire d'ajout -->
+                    <div id="addClientForm" class="form-section" style="display: none;">
+                        <h3><span class="material-icons">person_add</span> Ajouter un nouveau client VIP</h3>
+                        <form id="clientForm" onsubmit="ajouterClient(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="clientNom">Nom complet *</label>
+                                    <input type="text" id="clientNom" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="clientTel">Téléphone *</label>
+                                    <input type="tel" id="clientTel" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="clientEmail">Email</label>
+                                    <input type="email" id="clientEmail">
+                                </div>
+                                <div class="form-group">
+                                    <label for="clientBoutique">Boutique *</label>
+                                    <select id="clientBoutique" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Cotonou">Cotonou</option>
+                                        <option value="Lomé">Lomé</option>
+                                        <option value="ITC">ITC</option>
+                                        <option value="Angré">Angré</option>
+                                        <option value="La Maison">La Maison</option>
+                                        <option value="Dakar">Dakar</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="clientNumFacture">Numéro de facture *</label>
+                                    <input type="text" id="clientNumFacture" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="clientMontantFacture">Montant de la facture (min. 700.000 CFA) *</label>
+                                    <input type="number" id="clientMontantFacture" min="700000" step="1000" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="clientNotes">Notes (optionnel)</label>
+                                <textarea id="clientNotes" rows="3"></textarea>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label style="font-weight:600;"><input type="checkbox" id="clientManualDateToggle" style="margin-right:8px;"> Renseigner la date d'inscription manuellement</label>
+                                </div>
+                                <div class="form-group" id="clientDateGroup" style="display:none;">
+                                    <label for="clientDate">Date d'inscription</label>
+                                    <input type="date" id="clientDate">
+                                </div>
+                            </div>
+
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-success"><span class="material-icons">save</span> Enregistrer</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideAddClientForm()">
+                                    Annuler
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Formulaire de modification -->
+                    <div id="editClientSection" class="form-section" style="display: none;">
+                        <h3><span class="material-icons">edit</span> Modifier un client</h3>
+                        <div class="form-group">
+                            <label>Sélectionner le client à modifier</label>
+                            <select id="editClientSelect" onchange="loadClientToEdit()">
+                                <option value="">-- Sélectionner un client --</option>
+                            </select>
+                        </div>
+                        <form id="editClientForm" onsubmit="updateClient(event)" style="display: none; margin-top: 20px;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="editClientNom">Nom complet</label>
+                                    <input type="text" id="editClientNom" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editClientTel">Téléphone</label>
+                                    <input type="tel" id="editClientTel" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="editClientEmail">Email</label>
+                                    <input type="email" id="editClientEmail">
+                                </div>
+                                <div class="form-group">
+                                    <label for="editClientBoutique">Boutique</label>
+                                    <select id="editClientBoutique" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Cotonou">Cotonou</option>
+                                        <option value="Lomé">Lomé</option>
+                                        <option value="ITC">ITC</option>
+                                        <option value="Angré">Angré</option>
+                                        <option value="La Maison">La Maison</option>
+                                        <option value="Dakar">Dakar</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="editClientNumFacture">Numéro de facture</label>
+                                    <input type="text" id="editClientNumFacture" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editClientMontantFacture">Montant de la facture (min. 700.000 CFA)</label>
+                                    <input type="number" id="editClientMontantFacture" min="700000" step="1000" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="editClientStatut">Statut</label>
+                                    <select id="editClientStatut" required>
+                                        <option value="Actif">Actif</option>
+                                        <option value="Inactif">Inactif</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-success"><span class="material-icons">save</span> Mettre à jour</button>
+                                <button type="button" class="btn btn-danger" onclick="deleteClient()">
+                                    <span class="material-icons">delete</span> Supprimer
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="hideEditClientForm()">
+                                    Annuler
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Barre de filtres -->
+                    <div class="filter-bar">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-icons">search</span>
+                            <input type="text" id="searchClient" placeholder="Rechercher par nom ou téléphone..." oninput="filterClients()">
+                        </div>
+                        <select id="filterBoutique" onchange="filterClients()">
+                            <option value="">Toutes les boutiques</option>
+                            <option value="Cotonou">Cotonou</option>
+                            <option value="Lomé">Lomé</option>
+                            <option value="ITC">ITC</option>
+                            <option value="Angré">Angré</option>
+                            <option value="La Maison">La Maison</option>
+                            <option value="Dakar">Dakar</option>
+                        </select>
+                        <select id="filterStatut" onchange="filterClients()">
+                            <option value="">Tous les statuts</option>
+                            <option value="Actif">Actif</option>
+                            <option value="Inactif">Inactif</option>
+                        </select>
+                        <button class="btn btn-info" onclick="resetFilters()">
+                            <span class="material-icons">autorenew</span> Réinitialiser
+                        </button>
+                    </div>
+
+                    <!-- Tableau des clients -->
+                    <table id="tableClients">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Téléphone</th>
+                                <th>Email</th>
+                                <th>Boutique</th>
+                                <th>N° Facture</th>
+                                <th>Montant Facture</th>
+                                <th>Date inscription</th>
+                                <th>Cartes complétées</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Les clients seront insérés ici par JavaScript -->
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Section Cartes -->
+                <section id="cartes" class="content-section">
+                    <div class="section-header">
+                        <h2><span class="material-icons">confirmation_number</span> Gestion des Cartes de Fidélité</h2>
+                        <p style="color: #666; margin-top: 10px;">Suivi des cartes de fidélité des clients VIP</p>
+                    </div>
+
+                    <!-- Barre de filtres -->
+                    <div class="filter-bar">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="material-icons">search</span>
+                            <input type="text" id="searchCarte" placeholder="Rechercher par client..." oninput="filterCartes()">
+                        </div>
+                        <select id="filterCarteStatut" onchange="filterCartes()">
+                            <option value="">Tous les statuts</option>
+                            <option value="En cours">En cours</option>
+                            <option value="Complétée">Complétée</option>
+                        </select>
+                        <button class="btn btn-info" onclick="resetCarteFilters()">
+                            <span class="material-icons">autorenew</span> Réinitialiser
+                        </button>
+                    </div>
+
+                    <!-- Tableau des cartes -->
+                    <table id="tableCartes">
+                        <thead>
+                            <tr>
+                                <th>ID Carte</th>
+                                <th>Client</th>
+                                <th>Téléphone</th>
+                                <th>N° Carte</th>
+                                <th>Progression</th>
+                                <th>%</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Les cartes seront insérés ici par JavaScript -->
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Section Achats -->
+                <section id="achats" class="content-section">
+                    <div class="section-header">
+                        <h2><span class="material-icons">shopping_cart</span> Enregistrement des Achats</h2>
+                        <b><a href="mailto:"></a></b>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" onclick="showAchatForm()">
+                                + Nouvel achat
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire d'enregistrement d'achat -->
+                    <div id="achatForm" class="form-section">
+                        <h3><span class="material-icons">add</span> Enregistrer un nouvel achat</h3>
+                        <form id="achatFormElement" onsubmit="enregistrerAchat(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="achatClient">Client *</label>
+                                    <select id="achatClient" required onchange="showClientInfo()">
+                                        <option value="">-- Sélectionner un client --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="achatBoutique">Boutique *</label>
+                                    <select id="achatBoutique" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Cotonou">Cotonou</option>
+                                        <option value="Lomé">Lomé</option>
+                                        <option value="ITC">ITC</option>
+                                        <option value="Angré">Angré</option>
+                                        <option value="La Maison">La Maison</option>
+                                        <option value="Dakar">Dakar</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="achatMontant">Montant (F CFA) *</label>
+                                    <input type="number" id="achatMontant" required min="0" step="100">
+                                </div>
+                                <div class="form-group">
+                                    <label for="achatNumFacture">Numéro de facture *</label>
+                                    <input type="text" id="achatNumFacture" required placeholder="Ex:N°0001">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="achatProduits">Produits achetés</label>
+                                    <input type="text" id="achatProduits" placeholder="Liste des produits...">
+                                </div>
+                                <div class="form-group">
+                                    <label for="achatVendeur">Vendeur</label>
+                                    <input type="text" id="achatVendeur" placeholder="Nom du vendeur">
+                                </div>
+                            </div>
+                            <div id="clientQuickInfo" class="quick-info" style="display: none;"></div>
+                            <div class="action-buttons" style="margin-top: 20px;">
+                                <button type="submit" class="btn btn-success"><span class="material-icons">save</span> Enregistrer l'achat</button>
+                                <button type="reset" class="btn btn-secondary">
+                                    Effacer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Statistiques d'achats -->
+                    <div class="stats-grid" style="margin-top: 30px;">
+                        <div class="stat-card">
+                            <h3 id="achatsAujourdhui">0</h3>
+                            <p>Achats aujourd'hui</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="achatsMensuel">0</h3>
+                            <p>CA mensuel (F CFA)</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3 id="montantMoyen">0</h3>
+                            <p>Panier moyen (F CFA)</p>
+                        </div>
+                    </div>
+
+                    <!-- Filtres pour l'historique -->
+                    <div class="filter-bar">
+                        <input type="date" id="filterAchatDate" onchange="filterAchats()">
+                        <select id="filterAchatBoutique" onchange="filterAchats()">
+                            <option value="">Toutes les boutiques</option>
+                            <option value="Cotonou">Cotonou</option>
+                            <option value="Lomé">Lomé</option>
+                            <option value="ITC">ITC</option>
+                            <option value="Angré">Angré</option>
+                            <option value="La Maison">La Maison</option>
+                            <option value="Dakar">Dakar</option>
+                        </select>
+                        <select id="filterAchatEligible" onchange="filterAchats()">
+                            <option value="">Tous</option>
+                            <option value="eligible">Éligibles seulement</option>
+                            <option value="non-eligible">Non éligibles</option>
+                        </select>
+                        <button class="btn btn-info" onclick="resetAchatFilters()">
+                            <span class="material-icons">autorenew</span> Réinitialiser
+                        </button>
+                    </div>
+
+                    <!-- Tableau des achats -->
+                    <table id="tableAchats">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Boutique</th>
+                                <th>N° Facture</th>
+                                <th>Montant</th>
+                                <th>Produits</th>
+                                <th>Éligible</th>
+                                <th>Carte</th>
+                                <th>Case cochée</th>
+                                <th>Vendeur</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Les achats seront insérés ici par JavaScript -->
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Section Cadeaux -->
+                <section id="cadeaux" class="content-section">
+                    <div class="section-header">
+                        <h2><span class="material-icons">card_giftcard</span> Gestion des Cadeaux</h2>
+                        <p style="color: #666; margin-top: 10px;">Attribution et suivi des cadeaux VIP</p>
+                    </div>
+
+                    <!-- Formulaire d'attribution de cadeau -->
+                    <div class="form-section">
+                        <h3><span class="material-icons">card_giftcard</span> Attribuer un cadeau</h3>
+                        <form id="cadeauForm" onsubmit="attribuerCadeau(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="cadeauClient">Client *</label>
+                                    <select id="cadeauClient" required onchange="updateCadeauCarteOptions()">
+                                        <option value="">-- Sélectionner un client --</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cadeauCarte">Carte à récompenser *</label>
+                                    <select id="cadeauCarte" required>
+                                        <option value="">-- Sélectionner --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div id="cartesPretesCadeau" class="quick-info"></div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="cadeauNom">Cadeau *</label>
+                                    <select id="cadeauNom" required onchange="toggleAutreCadeau()">
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Accessoire">Accessoire</option>
+                                        <option value="Tenue">Tenue Nanawax</option>
+                                        <option value="Autre">Autre...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="cadeauAutreContainer" style="display: none;">
+                                    <label for="cadeauAutre">Précisez le cadeau *</label>
+                                    <input type="text" id="cadeauAutre" placeholder="Description du cadeau...">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="cadeauPar">Cadeau choisi par *</label>
+                                    <select id="cadeauPar" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Client">Client(e)</option>
+                                        <option value="Vendeur">Madame</option>
+                                        <option value="Manager">Maman</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cadeauBoutique">Boutique *</label>
+                                    <select id="cadeauBoutique" required>
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Cotonou">Cotonou</option>
+                                        <option value="Lomé">Lomé</option>
+                                        <option value="ITC">ITC</option>
+                                        <option value="Angré">Angré</option>
+                                        <option value="La Maison">La Maison</option>
+                                        <option value="Dakar">Dakar</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="cadeauNotes">Notes (optionnel)</label>
+                                <textarea id="cadeauNotes" rows="3" placeholder="Informations complémentaires..."></textarea>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-success"><span class="material-icons">card_giftcard</span> Attribuer le cadeau</button>
+                                <button type="reset" class="btn btn-secondary">
+                                    Effacer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Filtres pour la liste des cadeaux -->
+                    <div class="filter-bar">
+                        <select id="filterCadeauStatut" onchange="filterCadeaux()">
+                            <option value="">Tous les statuts</option>
+                            <option value="En attente">En attente</option>
+                            <option value="Remis">Remis</option>
+                            <option value="Annulé">Annulé</option>
+                        </select>
+                        <select id="filterCadeauBoutique" onchange="filterCadeaux()">
+                            <option value="">Toutes les boutiques</option>
+                            <option value="Cotonou">Cotonou</option>
+                            <option value="Lomé">Lomé</option>
+                            <option value="ITC">ITC</option>
+                            <option value="Angré">Angré</option>
+                            <option value="La Maison">La Maison</option>
+                            <option value="Dakar">Dakar</option>
+                        </select>
+                        <button class="btn btn-info" onclick="resetCadeauFilters()">
+                            <span class="material-icons">autorenew</span> Réinitialiser
+                        </button>
+                    </div>
+
+                    <!-- Tableau des cadeaux -->
+                    <table id="tableCadeaux">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Client</th>
+                                <th>Carte N°</th>
+                                <th>Cadeau</th>
+                                <th>Choisi par</th>
+                                <th>Boutique</th>
+                                <th>Notes</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Les cadeaux seront insérés ici par JavaScript -->
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Section Journal -->
+                <section id="journal" class="content-section">
+                    <div class="section-header">
+                        <h2><span class="material-icons">book</span> Journal des Activités</h2>
+                        <p style="color: #666; margin-top: 10px;">Historique de toutes les actions dans le système</p>
+                    </div>
+
+                    <!-- Filtres du journal -->
+                    <div class="filter-bar">
+                        <select id="filterJournalType" onchange="filterJournal()">
+                            <option value="">Tous les types</option>
+                            <option value="systeme">Système</option>
+                            <option value="client">Client</option>
+                            <option value="carte">Carte</option>
+                            <option value="achat">Achat</option>
+                            <option value="cadeau">Cadeau</option>
+                            <option value="utilisateur">Utilisateur</option>
+                        </select>
+                        <select id="filterJournalUser" onchange="filterJournal()">
+                            <option value="">Tous les utilisateurs</option>
+                        </select>
+                        <input type="date" id="filterJournalDate" onchange="filterJournal()">
+                        <button class="btn btn-info" onclick="resetJournalFilters()">
+                            <span class="material-icons">autorenew</span> Réinitialiser
+                        </button>
+                        <button class="btn btn-danger" onclick="clearJournal()">
+                            <span class="material-icons">delete</span> Vider le journal
+                        </button>
+                    </div>
+
+                    <!-- Liste des activités -->
+                    <div id="journalEntries" class="form-section" style="max-height: 600px; overflow-y: auto;">
+                        <!-- Les activités seront insérées ici par JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Section Utilisateurs -->
+                <section id="utilisateurs" class="content-section">
+                    <div class="section-header">
+                        <h2><span class="material-icons">people</span> Gestion des Utilisateurs</h2>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" onclick="showAddUserForm()">
+                                + Ajouter un utilisateur
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire d'ajout d'utilisateur -->
+                    <div id="addUserForm" class="form-section" style="display: none;">
+                        <h3><span class="material-icons">person_add</span> Ajouter un nouvel utilisateur</h3>
+                        <form id="userForm" onsubmit="ajouterUtilisateur(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="userNom">Nom complet *</label>
+                                    <input type="text" id="userNom" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userUsername">Nom d'utilisateur *</label>
+                                    <input type="text" id="userUsername" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="userPassword">Mot de passe *</label>
+                                    <input type="password" id="userPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userRole">Rôle *</label>
+                                    <select id="userRole" required onchange="toggleBoutiqueField()">
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="admin">Administrateur</option>
+                                        <option value="manager">Manager</option>
+                                        <option value="boutique">Responsable Boutique</option>
+                                        <option value="vendeur">Vendeur</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" id="userBoutiqueContainer" style="display: none;">
+                                    <label for="userBoutique">Boutique *</label>
+                                    <select id="userBoutique">
+                                        <option value="">-- Sélectionner --</option>
+                                        <option value="Cotonou">Cotonou</option>
+                                        <option value="Lomé">Lomé</option>
+                                        <option value="ITC">ITC</option>
+                                        <option value="Angré">Angré</option>
+                                        <option value="La Maison">La Maison</option>
+                                        <option value="Dakar">Dakar</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-success"><span class="material-icons">save</span> Créer l'utilisateur</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideAddUserForm()">
+                                    Annuler
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Tableau des utilisateurs -->
+                    <table id="tableUtilisateurs">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Nom d'utilisateur</th>
+                                <th>Rôle</th>
+                                <th>Boutique</th>
+                                <th>Date création</th>
+                                <th>Dernière connexion</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Les utilisateurs seront insérés ici par JavaScript -->
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Section Export -->
+                <section id="export" class="content-section">
+                    <div class="section-header">
+                        <h2><span class="material-icons">upload</span> Export des Données</h2>
+                        <p style="color: #666; margin-top: 10px;">Exportez vos données au format Excel ou effectuez des sauvegardes</p>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card" onclick="exporterExcel()" style="cursor: pointer;">
+                            <h3><span class="material-icons">trending_up</span></h3>
+                            <p>Export Excel Complet</p>
+                            <small>Toutes les données en un fichier</small>
+                        </div>
+                        <div class="stat-card" onclick="showExportSelectif()" style="cursor: pointer;">
+                            <h3><span class="material-icons">list_alt</span></h3>
+                            <p>Export Sélectif</p>
+                            <small>Choisir les données à exporter</small>
+                        </div>
+                        <div class="stat-card" onclick="backupCloud()" style="cursor: pointer;">
+                            <h3><span class="material-icons">cloud_upload</span></h3>
+                            <p>Sauvegarde Cloud</p>
+                            <small>Sauvegarder dans le navigateur</small>
+                        </div>
+                        <div class="stat-card" onclick="restoreCloud()" style="cursor: pointer;">
+                            <h3><span class="material-icons">autorenew</span></h3>
+                            <p>Restaurer</p>
+                            <small>Restaurer une sauvegarde</small>
+                        </div>
+                    </div>
+
+                    <!-- Export sélectif -->
+                    <div id="exportSelectif" class="form-section" style="display: none; margin-top: 30px;">
+                        <h3><span class="material-icons">list_alt</span> Export Sélectif</h3>
+                        <div style="margin-bottom: 20px;">
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <input type="checkbox" id="expClients" checked>
+                                <label for="expClients" style="display: inline; margin-left: 10px;">Clients VIP</label>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <input type="checkbox" id="expCartes" checked>
+                                <label for="expCartes" style="display: inline; margin-left: 10px;">Cartes de fidélité</label>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <input type="checkbox" id="expAchats" checked>
+                                <label for="expAchats" style="display: inline; margin-left: 10px;">Historique des achats</label>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <input type="checkbox" id="expCadeaux" checked>
+                                <label for="expCadeaux" style="display: inline; margin-left: 10px;">Cadeaux attribués</label>
+                            </div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-success" onclick="exporterSelectif()">
+                                <span class="material-icons">file_download</span> Exporter sélection
+                            </button>
+                            <button class="btn btn-secondary" onclick="hideExportSelectif()">
+                                Annuler
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Réinitialisation des données -->
+                    <div class="form-section" style="margin-top: 30px; border: 2px solid #dc3545;">
+                        <h3 style="color: #dc3545;"><span class="material-icons">warning</span> Zone de Danger</h3>
+                        <p style="margin-bottom: 20px; color: #666;">
+                            Ces actions sont irréversibles. Utilisez avec précaution.
+                        </p>
+                        <div class="action-buttons">
+                            <button class="btn btn-danger" onclick="reinitialiserDonnees()">
+                                <span class="material-icons">delete</span> Réinitialiser toutes les données
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section Profil -->
+                <section id="profil" class="content-section">
+                    <div class="section-header">
+                        <h2><span class="material-icons">settings</span> Mon Profil</h2>
+                        <p style="color: #666; margin-top: 10px;">Gérez vos informations personnelles</p>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Informations du compte</h3>
+                        <div id="profileInfo">
+                            <!-- Les informations du profil seront insérées ici par JavaScript -->
+                        </div>
+                        <div class="action-buttons" style="margin-top: 20px;">
+                            <button class="btn btn-warning" onclick="showChangePasswordForm()">
+                                <span class="material-icons">vpn_key</span> Changer le mot de passe
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire de changement de mot de passe -->
+                    <div id="changePasswordForm" class="form-section" style="display: none; margin-top: 30px;">
+                        <h3><span class="material-icons">vpn_key</span> Changer le mot de passe</h3>
+                        <form id="passwordForm" onsubmit="changerMotDePasse(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="currentPassword">Mot de passe actuel *</label>
+                                    <input type="password" id="currentPassword" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="newPassword">Nouveau mot de passe *</label>
+                                    <input type="password" id="newPassword" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmPassword">Confirmer le mot de passe *</label>
+                                    <input type="password" id="confirmPassword" required>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-success">💾 Mettre à jour</button>
+                                <button type="button" class="btn btn-secondary" onclick="hideChangePasswordForm()">
+                                    Annuler
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <!-- Modal pour voir les détails -->
+                <div id="modalCarte" class="modal">
+                    <div class="modal-content">
+                        <h3 id="modalTitle"></h3>
+                        <div id="modalBody" style="margin-top: 20px;"></div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CONFIGURATION ====================
+        const CONFIG = {
+            APP_NAME: 'Gestion VIP Nanawax',
+            VERSION: '2.1.0',
+            SEUIL_ACHAT: 200000,
+            NOTIFICATION_CHECK_INTERVAL: 30000,
+            AUTO_BACKUP_INTERVAL: 300000,
+            
+            ROLES: {
+                admin: {
+                    name: 'Administrateur',
+                    permissions: [
+                        'manage_users', 'view_reports', 'export_data', 'view_logs',
+                        'view_clients', 'add_clients', 'edit_clients', 'delete_clients',
+                        'view_cards', 'manage_cards', 'add_purchases', 'manage_gifts',
+                        'view_all_boutiques', 'system_settings'
+                    ],
+                    canManageUsers: true,
+                    canViewAllBoutiques: true
+                },
+                manager: {
+                    name: 'Manager',
+                    permissions: [
+                        'view_reports', 'export_data', 'view_logs',
+                        'view_clients', 'add_clients', 'edit_clients',
+                        'view_cards', 'manage_cards', 'add_purchases', 'manage_gifts',
+                        'view_all_boutiques'
+                    ],
+                    canManageUsers: false,
+                    canViewAllBoutiques: true
+                },
+                boutique: {
+                    name: 'Responsable Boutique',
+                    permissions: [
+                        'view_reports', 'view_logs',
+                        'view_clients', 'add_clients', 'edit_clients',
+                        'view_cards', 'manage_cards', 'add_purchases', 'manage_gifts'
+                    ],
+                    canManageUsers: false,
+                    canViewAllBoutiques: false
+                },
+                vendeur: {
+                    name: 'Vendeur',
+                    permissions: [
+                        'view_clients', 'add_clients',
+                        'view_cards', 'add_purchases'
+                    ],
+                    canManageUsers: false,
+                    canViewAllBoutiques: false
+                }
+            },
+            
+            PERMISSIONS_LIST: {
+                'manage_users': 'Gérer les utilisateurs',
+                'system_settings': 'Paramètres système',
+                'view_reports': 'Voir les rapports',
+                'export_data': 'Exporter les données',
+                'view_logs': 'Voir le journal',
+                'view_all_boutiques': 'Voir toutes les boutiques',
+                'view_clients': 'Voir les clients',
+                'add_clients': 'Ajouter des clients',
+                'edit_clients': 'Modifier les clients',
+                'delete_clients': 'Supprimer des clients',
+                'view_cards': 'Voir les cartes',
+                'manage_cards': 'Gérer les cartes',
+                'add_purchases': 'Ajouter des achats',
+                'manage_gifts': 'Gérer les cadeaux'
+            },
+            
+            BOUTIQUES: ['Cotonou', 'Lomé', 'ITC', 'Angré', 'La Maison', 'Dakar']
+        };
+
+        // ==================== BASE DE DONNÉES ====================
+        let data = {
+            clients: [],
+            cartes: [],
+            achats: [],
+            cadeaux: [],
+            utilisateurs: [],
+            journal: [],
+            notifications: [],
+            nextClientId: 1,
+            nextCarteId: 1,
+            nextAchatId: 1,
+            nextUserId: 1,
+            nextNotifId: 1
+        };
+
+        let currentUser = null;
+        let filteredClients = [];
+        let filteredCartes = [];
+        let filteredAchats = [];
+        let filteredCadeaux = [];
+        let filteredUsers = [];
+        let chartInstance = null;
+
+        // ==================== INITIALISATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            chargerDonnees();
+            setupEventListeners();
+            checkNotifications();
+            setInterval(checkNotifications, CONFIG.NOTIFICATION_CHECK_INTERVAL);
+            setInterval(autoBackup, CONFIG.AUTO_BACKUP_INTERVAL);
+            initializeDefaultUsers();
+        });
+
+        function initializeDefaultUsers() {
+            if (data.utilisateurs.length === 0) {
+                const defaultUsers = [
+                    {
+                        id: 1,
+                        nom: 'Administrateur Principal',
+                        username: 'admin',
+                        password: 'admin123',
+                        role: 'admin',
+                        boutique: '',
+                        dateCreation: new Date().toISOString(),
+                        lastLogin: null,
+                        statut: 'Actif',
+                        permissions: CONFIG.ROLES.admin.permissions,
+                        createdBy: 'system'
+                    },
+                    {
+                        id: 2,
+                        nom: 'Manager Principal',
+                        username: 'manager',
+                        password: 'manager123',
+                        role: 'manager',
+                        boutique: '',
+                        dateCreation: new Date().toISOString(),
+                        lastLogin: null,
+                        statut: 'Actif',
+                        permissions: CONFIG.ROLES.manager.permissions,
+                        createdBy: 'system'
+                    },
+                    {
+                        id: 3,
+                        nom: 'Vendeur',
+                        username: 'vendeur',
+                        password: 'vendeur123',
+                        role: 'vendeur',
+                        boutique: 'Cotonou',
+                        dateCreation: new Date().toISOString(),
+                        lastLogin: null,
+                        statut: 'Actif',
+                        permissions: CONFIG.ROLES.vendeur.permissions,
+                        createdBy: 'system'
+                    }
+                ];
+                
+                data.utilisateurs = defaultUsers;
+                data.nextUserId = 4;
+                sauvegarderDonnees();
+            }
+        }
+
+        // ==================== STOCKAGE DES DONNÉES ====================
+        function chargerDonnees() {
+            try {
+                const saved = localStorage.getItem('vip-data');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    data = { ...data, ...parsed };
+                    
+                    data.utilisateurs = data.utilisateurs || [];
+                    data.journal = data.journal || [];
+                    data.notifications = data.notifications || [];
+                    
+                    verifierEtCorrigerIDs();
+                }
+            } catch (error) {
+                console.error('Erreur chargement données:', error);
+            }
+        }
+
+        function sauvegarderDonnees() {
+            try {
+                localStorage.setItem('vip-data', JSON.stringify(data));
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+            }
+        }
+
+        function verifierEtCorrigerIDs() {
+            if (data.utilisateurs && data.utilisateurs.length > 0) {
+                data.nextUserId = Math.max(1, ...data.utilisateurs.map(u => u.id)) + 1;
+            }
+            if (data.clients && data.clients.length > 0) {
+                data.nextClientId = Math.max(1, ...data.clients.map(c => c.id)) + 1;
+            }
+            if (data.cartes && data.cartes.length > 0) {
+                data.nextCarteId = Math.max(1, ...data.cartes.map(c => c.id)) + 1;
+            }
+            if (data.achats && data.achats.length > 0) {
+                data.nextAchatId = Math.max(1, ...data.achats.map(a => a.id)) + 1;
+            }
+            if (data.notifications && data.notifications.length > 0) {
+                data.nextNotifId = Math.max(1, ...data.notifications.map(n => n.id)) + 1;
+            }
+        }
+
+        // ==================== AUTHENTIFICATION ====================
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const boutique = document.getElementById('loginBoutique').value;
+            
+            const user = data.utilisateurs.find(u => 
+                u.username === username && 
+                u.password === password && 
+                u.statut === 'Actif'
+            );
+            
+            if (user) {
+                if (user.role === 'boutique' || user.role === 'vendeur') {
+                    if (!user.boutique) {
+                        alert('Cet utilisateur n\'a pas de boutique assignée. Contactez l\'administrateur.');
+                        return;
+                    }
+                    
+                    if (boutique && boutique !== user.boutique) {
+                        alert(`Cet utilisateur est assigné à la boutique ${user.boutique}. Veuillez sélectionner la bonne boutique.`);
+                        return;
+                    }
+                    
+                    if (!boutique && user.boutique) {
+                        alert(`Veuillez sélectionner la boutique ${user.boutique}`);
+                        return;
+                    }
+                }
+                
+                currentUser = {
+                    id: user.id,
+                    nom: user.nom,
+                    username: user.username,
+                    role: user.role,
+                    boutique: user.boutique,
+                    permissions: user.permissions || CONFIG.ROLES[user.role]?.permissions || []
+                };
+                
+                user.lastLogin = new Date().toISOString();
+                sauvegarderDonnees();
+                
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                
+                updateUserDisplay();
+                initializeInterfaceWithPermissions();
+                
+                ajouterJournal('systeme', 'Connexion', `Utilisateur ${currentUser.nom} (${currentUser.role}) connecté`);
+                ajouterNotification('Bienvenue', `Bonjour ${currentUser.nom}, bienvenue dans le système de gestion VIP.`, 'info');
+                
+                rafraichirInterface();
+                
+            } else {
+                alert('Identifiants incorrects ou compte désactivé!');
+            }
+        });
+
+        function logout() {
+            if (confirm('Voulez-vous vous déconnecter ?')) {
+                ajouterJournal('systeme', 'Déconnexion', `Utilisateur ${currentUser.nom} déconnecté`);
+                currentUser = null;
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('appContainer').style.display = 'none';
+                document.getElementById('loginForm').reset();
+            }
+        }
+
+        function updateUserDisplay() {
+            const userInfo = document.getElementById('currentUserInfo');
+            if (userInfo && currentUser) {
+                userInfo.innerHTML = `
+                    <strong><span class="material-icons">person</span> ${currentUser.nom}</strong>
+                    <span class="user-role-badge role-${currentUser.role}">${CONFIG.ROLES[currentUser.role]?.name || currentUser.role}</span>
+                    ${currentUser.boutique ? `<br><small><span class="material-icons">storefront</span> ${currentUser.boutique}</small>` : ''}
+                `;
+            }
+        }
+
+        // ==================== GESTION DES PERMISSIONS ====================
+        function hasPermission(permission) {
+            if (!currentUser) return false;
+            if (currentUser.role === 'admin') return true;
+            return currentUser.permissions.includes(permission);
+        }
+
+        function checkBoutiqueAccess(boutique) {
+            if (!currentUser) return false;
+            if (currentUser.role === 'admin' || currentUser.role === 'manager') return true;
+            if (!currentUser.boutique) return false;
+            return currentUser.boutique === boutique;
+        }
+
+        function initializeInterfaceWithPermissions() {
+            document.querySelectorAll('.tab').forEach(tab => {
+                const permission = tab.getAttribute('data-permission');
+                if (permission) {
+                    tab.style.display = !hasPermission(permission) ? 'none' : 'flex';
+                }
+            });
+            
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab && activeTab.style.display === 'none') {
+                const firstVisibleTab = document.querySelector('.tab[style*="flex"], .tab:not([style*="none"])');
+                if (firstVisibleTab) {
+                    firstVisibleTab.click();
+                }
+            }
+            
+            updateBoutiqueFilters();
+        }
+
+        function updateBoutiqueFilters() {
+            const boutiqueSelects = document.querySelectorAll('select[id*="boutique"], select[id*="Boutique"]');
+            
+            boutiqueSelects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">-- Sélectionner --</option>';
+                
+                CONFIG.BOUTIQUES.forEach(boutique => {
+                    if (checkBoutiqueAccess(boutique) || hasPermission('view_all_boutiques')) {
+                        const option = document.createElement('option');
+                        option.value = boutique;
+                        option.textContent = boutique;
+                        select.appendChild(option);
+                    }
+                });
+                
+                if (currentValue && Array.from(select.options).some(opt => opt.value === currentValue)) {
+                    select.value = currentValue;
+                }
+            });
+        }
+
+        // ==================== NAVIGATION ET ONDELETS ====================
+        function switchTab(tabId) {
+            // Masquer toutes les sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Désactiver tous les onglets
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activer la section correspondante
+            const section = document.getElementById(tabId);
+            if (section) {
+                section.classList.add('active');
+            }
+            
+            // Activer l'onglet correspondant
+            const tab = document.querySelector(`.tab[onclick*="switchTab('${tabId}')"]`);
+            if (tab) {
+                tab.classList.add('active');
+            }
+            
+            // Rafraîchir le contenu selon l'onglet
+            switch(tabId) {
+                case 'dashboard':
+                    afficherDashboard();
+                    break;
+                case 'clients':
+                    afficherClients();
+                    break;
+                case 'cartes':
+                    afficherCartes();
+                    break;
+                case 'achats':
+                    afficherAchats();
+                    break;
+                case 'cadeaux':
+                    afficherCadeaux();
+                    break;
+                case 'journal':
+                    afficherJournal();
+                    break;
+                case 'utilisateurs':
+                    afficherUtilisateurs();
+                    break;
+                case 'export':
+                    break;
+                case 'profil':
+                    loadProfile();
+                    break;
+            }
+        }
+
+        // ==================== GESTION DES CLIENTS ====================
+        function ajouterClient(e) {
+            e.preventDefault();
+            
+            if (!hasPermission('add_clients')) {
+                alert('Vous n\'avez pas la permission d\'ajouter des clients.');
+                return;
+            }
+            
+            const boutique = document.getElementById('clientBoutique').value;
+            
+            if (!checkBoutiqueAccess(boutique) && !hasPermission('view_all_boutiques')) {
+                alert(`Vous n'avez pas accès à la boutique ${boutique}.`);
+                return;
+            }
+            
+            // Validation du montant de la facture
+            const montant = parseFloat(document.getElementById('clientMontantFacture').value);
+            if (montant < 700000) {
+                alert('<span class="material-icons">error</span> Le montant de la facture doit être supérieur ou égal à 700.000 CFA');
+                return;
+            }
+            
+            const client = {
+                id: data.nextClientId++,
+                nom: document.getElementById('clientNom').value.trim(),
+                telephone: document.getElementById('clientTel').value.trim(),
+                email: document.getElementById('clientEmail').value.trim(),
+                boutique: boutique,
+                numFacture: document.getElementById('clientNumFacture').value.trim(),
+                montantFacture: montant,
+                // Date d'inscription : si l'admin a choisi de la renseigner manuellement, l'utiliser
+                // sinon utiliser la date actuelle
+                dateInscription: (function(){
+                    try {
+                        const manualToggle = document.getElementById('clientManualDateToggle');
+                        const dateInput = document.getElementById('clientDate');
+                        if (manualToggle && manualToggle.checked) {
+                            if (dateInput && dateInput.value) {
+                                const d = new Date(dateInput.value + 'T00:00:00');
+                                if (isNaN(d.getTime())) { throw new Error('Date invalide'); }
+                                return d.toLocaleDateString('fr-FR');
+                            } else {
+                                alert('Veuillez saisir une date d\'inscription valide.');
+                                throw new Error('Date manuelle non fournie');
+                            }
+                        }
+                    } catch (err) {
+                        throw err;
+                    }
+                    return new Date().toLocaleDateString('fr-FR');
+                })(),
+                cartesCompletees: 0,
+                statut: 'Actif',
+                notes: document.getElementById('clientNotes').value || '',
+                dateCreation: new Date().toISOString(),
+                createdBy: currentUser.username
+            };
+            
+            data.clients.push(client);
+            creerNouvelleCarte(client.id);
+            
+            ajouterJournal('client', 'Création', `Client ${client.nom} ajouté (${client.telephone}) à ${client.boutique}`);
+            sauvegarderDonnees();
+            document.getElementById('clientForm').reset();
+            hideAddClientForm();
+            afficherClients();
+            majSelectClients();
+            
+            ajouterNotification('Nouveau client', `${client.nom} a été ajouté comme client VIP.`, 'success');
+            alert('✔ Client VIP ajouté avec succès! Une carte de fidélité a été créée automatiquement.');
+        }
+        
+        // --- Toggle affichage du champ date manuelle ---
+        (function(){
+            const manualToggleEl = document.getElementById('clientManualDateToggle');
+            const dateGroupEl = document.getElementById('clientDateGroup');
+            if (manualToggleEl && dateGroupEl) {
+                manualToggleEl.addEventListener('change', () => {
+                    dateGroupEl.style.display = manualToggleEl.checked ? 'block' : 'none';
+                });
+            }
+        })();
+
+        function creerNouvelleCarte(clientId) {
+            const client = data.clients.find(c => c.id === clientId);
+            if (!client) return null;
+            
+            const nbCartes = data.cartes.filter(c => c.clientId === clientId).length;
+            
+            const carte = {
+                id: data.nextCarteId++,
+                clientId: clientId,
+                clientNom: client.nom,
+                clientTelephone: client.telephone,
+                numeroCarte: nbCartes + 1,
+                dateCreation: new Date().toLocaleDateString('fr-FR'),
+                dateCreationISO: new Date().toISOString(),
+                cases: new Array(10).fill(false),
+                statut: 'En cours',
+                derniereCase: null
+            };
+            
+            data.cartes.push(carte);
+            ajouterJournal('carte', 'Création', `Nouvelle carte #${carte.id} pour ${client.nom}`);
+            return carte;
+        }
+
+        function afficherClients() {
+            const tbody = document.getElementById('tableClients')?.querySelector('tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const clientsToShow = filteredClients.length > 0 ? filteredClients : data.clients;
+            
+            clientsToShow.forEach(client => {
+                if (!checkBoutiqueAccess(client.boutique) && !hasPermission('view_all_boutiques')) {
+                    return;
+                }
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${client.id}</td>
+                    <td><strong>${client.nom}</strong></td>
+                    <td>${client.telephone}</td>
+                    <td>${client.email || '-'}</td>
+                    <td><span class="badge badge-info">${client.boutique}</span></td>
+                    <td>${client.numFacture || '-'}</td>
+                    <td>${client.montantFacture ? client.montantFacture.toLocaleString('fr-FR') + ' F' : '-'}</td>
+                    <td>${client.dateInscription}</td>
+                    <td>${client.cartesCompletees}</td>
+                    <td><span class="badge badge-${client.statut === 'Actif' ? 'success' : 'danger'}">${client.statut}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="voirDetailsClient(${client.id})" style="padding: 5px 10px; font-size: 0.9em;"><span class="material-icons">visibility</span> Voir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            const editSelect = document.getElementById('editClientSelect');
+            if (editSelect) {
+                editSelect.innerHTML = '<option value="">-- Sélectionner un client --</option>';
+                data.clients.forEach(client => {
+                    const option = document.createElement('option');
+                    option.value = client.id;
+                    option.textContent = `${client.nom} (${client.telephone})`;
+                    editSelect.appendChild(option);
+                });
+            }
+            
+            majSelectClients();
+        }
+
+        function filterClients() {
+            const search = document.getElementById('searchClient').value.toLowerCase();
+            const boutique = document.getElementById('filterBoutique').value;
+            const statut = document.getElementById('filterStatut').value;
+            
+            filteredClients = data.clients.filter(client => {
+                if (!checkBoutiqueAccess(client.boutique) && !hasPermission('view_all_boutiques')) {
+                    return false;
+                }
+                
+                const matchSearch = !search || 
+                    client.nom.toLowerCase().includes(search) ||
+                    client.telephone.includes(search) ||
+                    (client.email && client.email.toLowerCase().includes(search));
+                const matchBoutique = !boutique || client.boutique === boutique;
+                const matchStatut = !statut || client.statut === statut;
+                
+                return matchSearch && matchBoutique && matchStatut;
+            });
+            
+            afficherClients();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchClient').value = '';
+            document.getElementById('filterBoutique').value = '';
+            document.getElementById('filterStatut').value = '';
+            filteredClients = [];
+            afficherClients();
+        }
+
+        function showAddClientForm() {
+            if (!hasPermission('add_clients')) {
+                alert('Vous n\'avez pas la permission d\'ajouter des clients.');
+                return;
+            }
+            document.getElementById('addClientForm').style.display = 'block';
+        }
+
+        function hideAddClientForm() {
+            document.getElementById('addClientForm').style.display = 'none';
+            document.getElementById('clientForm').reset();
+        }
+
+        function showEditClientForm() {
+            if (!hasPermission('edit_clients')) {
+                alert('Vous n\'avez pas la permission de modifier des clients.');
+                return;
+            }
+            document.getElementById('editClientSection').style.display = 'block';
+        }
+
+        function hideEditClientForm() {
+            document.getElementById('editClientSection').style.display = 'none';
+            document.getElementById('editClientForm').style.display = 'none';
+            document.getElementById('editClientSelect').value = '';
+        }
+
+        function loadClientToEdit() {
+            const clientId = parseInt(document.getElementById('editClientSelect').value);
+            if (!clientId) {
+                document.getElementById('editClientForm').style.display = 'none';
+                return;
+            }
+            
+            const client = data.clients.find(c => c.id === clientId);
+            if (client) {
+                document.getElementById('editClientNom').value = client.nom;
+                document.getElementById('editClientTel').value = client.telephone;
+                document.getElementById('editClientEmail').value = client.email || '';
+                document.getElementById('editClientBoutique').value = client.boutique;
+                document.getElementById('editClientNumFacture').value = client.numFacture || '';
+                document.getElementById('editClientMontantFacture').value = client.montantFacture || '';
+                document.getElementById('editClientStatut').value = client.statut;
+                document.getElementById('editClientForm').style.display = 'block';
+            }
+        }
+
+        function updateClient(e) {
+            e.preventDefault();
+            const clientId = parseInt(document.getElementById('editClientSelect').value);
+            const clientIndex = data.clients.findIndex(c => c.id === clientId);
+            
+            // Validation du montant de la facture
+            const montant = parseFloat(document.getElementById('editClientMontantFacture').value);
+            if (montant < 700000) {
+                alert('<span class="material-icons">error</span> Le montant de la facture doit être supérieur ou égal à 700.000 CFA');
+                return;
+            }
+            
+            if (clientIndex !== -1) {
+                const ancienNom = data.clients[clientIndex].nom;
+                data.clients[clientIndex] = {
+                    ...data.clients[clientIndex],
+                    nom: document.getElementById('editClientNom').value.trim(),
+                    telephone: document.getElementById('editClientTel').value.trim(),
+                    email: document.getElementById('editClientEmail').value.trim(),
+                    boutique: document.getElementById('editClientBoutique').value,
+                    numFacture: document.getElementById('editClientNumFacture').value.trim(),
+                    montantFacture: montant,
+                    statut: document.getElementById('editClientStatut').value
+                };
+                
+                ajouterJournal('client', 'Modification', `Client ${ancienNom} modifié (nouveau: ${data.clients[clientIndex].nom})`);
+                sauvegarderDonnees();
+                afficherClients();
+                majSelectClients();
+                
+                hideEditClientForm();
+                
+                ajouterNotification('Client modifié', `Les informations de ${data.clients[clientIndex].nom} ont été mises à jour.`, 'info');
+            }
+        }
+
+        function deleteClient() {
+            const clientId = parseInt(document.getElementById('editClientSelect').value);
+            const client = data.clients.find(c => c.id === clientId);
+            
+            if (client && confirm(`Supprimer définitivement le client ${client.nom} ?`)) {
+                data.cartes = data.cartes.filter(c => c.clientId !== clientId);
+                data.achats = data.achats.filter(a => a.clientId !== clientId);
+                data.cadeaux = data.cadeaux.filter(c => c.clientId !== clientId);
+                data.clients = data.clients.filter(c => c.id !== clientId);
+                
+                ajouterJournal('client', 'Suppression', `Client ${client.nom} supprimé`);
+                sauvegarderDonnees();
+                afficherClients();
+                majSelectClients();
+                
+                hideEditClientForm();
+                
+                ajouterNotification('Client supprimé', `${client.nom} a été supprimé du système.`, 'warning');
+            }
+        }
+
+        function voirDetailsClient(clientId) {
+            const client = data.clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            const cartesClient = data.cartes.filter(c => c.clientId === clientId);
+            const achatsClient = data.achats.filter(a => a.clientId === clientId);
+            const cadeauxClient = data.cadeaux.filter(c => c.clientId === clientId);
+            
+            const totalAchats = achatsClient.reduce((sum, a) => sum + a.montant, 0);
+            const achatsEligibles = achatsClient.filter(a => a.eligible).length;
+            const cartesEnCours = cartesClient.filter(c => c.statut === 'En cours').length;
+            const cartesCompletees = cartesClient.filter(c => c.statut === 'Complétée').length;
+            
+            let html = `
+                <h4><span class="material-icons">person</span> ${client.nom}</h4>
+                <div style="margin: 20px 0;">
+                    <p><strong><span class="material-icons">phone</span> Téléphone:</strong> ${client.telephone}</p>
+                    <p><strong><span class="material-icons">email</span> Email:</strong> ${client.email || 'Non renseigné'}</p>
+                    <p><strong><span class="material-icons">storefront</span> Boutique:</strong> ${client.boutique}</p>
+                    <p><strong><span class="material-icons">calendar_today</span> Date inscription:</strong> ${client.dateInscription}</p>
+                    <p><strong><span class="material-icons">confirmation_number</span> Statut:</strong> <span class="badge badge-${client.statut === 'Actif' ? 'success' : 'danger'}">${client.statut}</span></p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 20px 0;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <strong><span class="material-icons">trending_up</span> Statistiques</strong>
+                        <p>Cartes en cours: ${cartesEnCours}</p>
+                        <p>Cartes complétées: ${cartesCompletees}</p>
+                        <p>Total achats: ${totalAchats.toLocaleString('fr-FR')} F</p>
+                        <p>Achats éligibles: ${achatsEligibles}</p>
+                    </div>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                        <strong><span class="material-icons">card_giftcard</span> Cadeaux</strong>
+                        ${cadeauxClient.length > 0 ? 
+                            cadeauxClient.map(c => `<p>• ${c.cadeau} (${c.statut})</p>`).join('') : 
+                            '<p>Aucun cadeau attribué</p>'}
+                    </div>
+                </div>
+                
+                <h5><span class="material-icons">shopping_cart</span> Derniers achats</h5>
+                <div style="max-height: 200px; overflow-y: auto; margin: 10px 0;">
+            `;
+            
+            if (achatsClient.length > 0) {
+                achatsClient.slice().reverse().slice(0, 10).forEach(achat => {
+                    html += `
+                        <div style="padding: 8px; border-bottom: 1px solid #eee; font-size: 0.9em;">
+                            ${achat.date}: <strong>Fact: ${achat.numFacture || '-'}</strong> - ${achat.montant.toLocaleString('fr-FR')} F 
+                            <span class="badge badge-${achat.eligible ? 'success' : 'secondary'}" style="float: right;">
+                                ${achat.eligible ? '<span class="material-icons">check</span>' : '<span class="material-icons">close</span>'}
+                            </span>
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<p style="text-align: center; color: #666;">Aucun achat enregistré</p>';
+            }
+            
+            html += `
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="fermerModal()">Fermer</button>
+                </div>
+            `;
+            
+            document.getElementById('modalTitle').textContent = 'Détails du client VIP';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalCarte').classList.add('active');
+        }
+
+        // ==================== GESTION DES CARTES ====================
+        function afficherCartes() {
+            const tbody = document.getElementById('tableCartes')?.querySelector('tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            filteredCartes = data.cartes.filter(carte => {
+                const client = data.clients.find(c => c.id === carte.clientId);
+                if (!client) return false;
+                
+                if (!checkBoutiqueAccess(client.boutique) && !hasPermission('view_all_boutiques')) {
+                    return false;
+                }
+                
+                const search = document.getElementById('searchCarte')?.value.toLowerCase() || '';
+                const statut = document.getElementById('filterCarteStatut')?.value || '';
+                
+                const matchSearch = !search || 
+                    carte.clientNom.toLowerCase().includes(search) ||
+                    carte.clientTelephone.includes(search);
+                const matchStatut = !statut || carte.statut === statut;
+                
+                return matchSearch && matchStatut;
+            });
+            
+            filteredCartes.forEach(carte => {
+                const client = data.clients.find(c => c.id === carte.clientId);
+                if (!client) return;
+                
+                const casesCompletes = carte.cases.filter(c => c).length;
+                const progression = ((casesCompletes / 10) * 100).toFixed(0);
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${carte.id}</td>
+                    <td><strong>${carte.clientNom}</strong></td>
+                    <td>${carte.clientTelephone}</td>
+                    <td>Carte ${carte.numeroCarte}</td>
+                    <td>${casesCompletes} / 10</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="flex: 1; background: #e9ecef; border-radius: 10px; height: 20px; overflow: hidden;">
+                                <div style="background: ${casesCompletes === 10 ? '#28a745' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; 
+                                    height: 100%; width: ${progression}%; transition: width 0.3s;"></div>
+                            </div>
+                            <span style="font-size: 0.9em; color: #666;">${progression}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge badge-${carte.statut === 'Complétée' ? 'success' : 'warning'}">
+                            ${carte.statut}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-success" onclick="voirCarte(${carte.id})" style="padding: 5px 10px; font-size: 0.9em;">
+                            ${carte.statut === 'En cours' ? '<span class="material-icons">edit</span> Gérer' : '<span class="material-icons">visibility</span> Voir'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterCartes() {
+            afficherCartes();
+        }
+
+        function resetCarteFilters() {
+            document.getElementById('searchCarte').value = '';
+            document.getElementById('filterCarteStatut').value = '';
+            afficherCartes();
+        }
+
+        function voirCarte(carteId) {
+            const carte = data.cartes.find(c => c.id === carteId);
+            if (!carte) return;
+            
+            const client = data.clients.find(c => c.id === carte.clientId);
+            if (!client) return;
+            
+            const casesCompletes = carte.cases.filter(c => c).length;
+            const progression = (casesCompletes / 10) * 100;
+            
+            let html = `
+                <h4>${carte.clientNom} - Carte ${carte.numeroCarte}</h4>
+                <p>Téléphone: ${client.telephone}</p>
+                <p>Boutique: ${client.boutique}</p>
+                <p>Progression: ${casesCompletes}/10 cases (${progression.toFixed(0)}%)</p>
+                <div style="margin: 20px 0;">
+                    <strong>Gestion des cases :</strong>
+                    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 10px;">
+            `;
+            
+            carte.cases.forEach((checked, index) => {
+                html += `
+                    <div style="padding: 15px; background: ${checked ? '#28a745' : '#f8f9fa'}; 
+                                color: ${checked ? 'white' : 'black'}; border-radius: 8px; 
+                                text-align: center; cursor: pointer; font-weight: bold; transition: all 0.3s;"
+                         onclick="toggleCase(${carteId}, ${index})">
+                        Case ${index + 1}
+                        <div style="font-size: 24px;">${checked ? '<span class="material-icons">check</span>' : '<span class="material-icons">check_box_outline_blank</span>'}</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="fermerModal()">Fermer</button>
+                    ${carte.statut === 'En cours' ? 
+                        `<button class="btn btn-success" onclick="completerCarte(${carteId})" style="margin-left: 10px;">
+                            <span class="material-icons">check_circle</span> Marquer comme complète
+                        </button>` : ''}
+                </div>
+            `;
+            
+            document.getElementById('modalTitle').textContent = 'Gestion de la carte de fidélité';
+            document.getElementById('modalBody').innerHTML = html;
+            document.getElementById('modalCarte').classList.add('active');
+        }
+
+        function toggleCase(carteId, caseIndex) {
+            const carte = data.cartes.find(c => c.id === carteId);
+            if (!carte) return;
+            
+            const clientId = carte.clientId;
+            // Vérifier s'il existe un achat éligible pour ce client
+            const achatEligible = data.achats.find(a => a.clientId === clientId && a.eligible);
+            
+            if (!achatEligible) {
+                alert('<span class="material-icons">error</span> Impossible de marquer une case sans enregistrement d\'achat éligible (≥200.000 CFA).');
+                return;
+            }
+            
+            const etatPrecedent = carte.cases[caseIndex];
+            carte.cases[caseIndex] = !etatPrecedent;
+            carte.derniereCase = new Date().toISOString();
+            
+            const casesCompletes = carte.cases.filter(c => c).length;
+            if (casesCompletes === 10) {
+                carte.statut = 'Complétée';
+                ajouterNotification('Carte complétée', `La carte #${carte.id} de ${carte.clientNom} est complète!`, 'success');
+            } else {
+                carte.statut = 'En cours';
+            }
+            
+            ajouterJournal('carte', 'Modification', 
+                `Case ${caseIndex + 1} ${etatPrecedent ? 'décochée' : 'cochée'} sur carte #${carte.id} (${carte.clientNom})`);
+            
+            sauvegarderDonnees();
+            voirCarte(carteId);
+            afficherCartes();
+            
+            if (document.getElementById('dashboard').classList.contains('active')) {
+                afficherDashboard();
+            }
+        }
+
+        function completerCarte(carteId) {
+            const carte = data.cartes.find(c => c.id === carteId);
+            if (!carte) return;
+            
+            const clientId = carte.clientId;
+            // Vérifier s'il existe un achat éligible pour ce client
+            const achatEligible = data.achats.find(a => a.clientId === clientId && a.eligible);
+            
+            if (!achatEligible) {
+                alert('<span class="material-icons">error</span> Impossible de compléter la carte sans enregistrement d\'achat éligible (≥200.000 CFA).');
+                return;
+            }
+            
+            carte.cases = carte.cases.map(() => true);
+            carte.statut = 'Complétée';
+            carte.derniereCase = new Date().toISOString();
+            
+            ajouterJournal('carte', 'Complétion manuelle', `Carte #${carteId} marquée comme complète manuellement`);
+            sauvegarderDonnees();
+            afficherCartes();
+            fermerModal();
+            
+            ajouterNotification('Carte complétée', `La carte #${carteId} a été marquée comme complète.`, 'success');
+        }
+
+        function fermerModal() {
+            document.getElementById('modalCarte').classList.remove('active');
+        }
+
+        // ==================== GESTION DES ACHATS ====================
+        function showAchatForm() {
+            if (!hasPermission('add_purchases')) {
+                alert('Vous n\'avez pas la permission d\'enregistrer des achats.');
+                return;
+            }
+            document.getElementById('achatForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function enregistrerAchat(e) {
+            e.preventDefault();
+            
+            if (!hasPermission('add_purchases')) {
+                alert('Vous n\'avez pas la permission d\'enregistrer des achats.');
+                return;
+            }
+            
+            const clientId = parseInt(document.getElementById('achatClient').value);
+            const boutique = document.getElementById('achatBoutique').value;
+            
+            if (!checkBoutiqueAccess(boutique) && !hasPermission('view_all_boutiques')) {
+                alert(`Vous n'avez pas accès à la boutique ${boutique}.`);
+                return;
+            }
+            
+            const client = data.clients.find(c => c.id === clientId);
+            if (!client) {
+                alert('Client non trouvé!');
+                return;
+            }
+            
+            const montant = parseFloat(document.getElementById('achatMontant').value);
+            if (isNaN(montant) || montant <= 0) {
+                alert('Veuillez entrer un montant valide!');
+                return;
+            }
+            
+            const numFacture = document.getElementById('achatNumFacture').value.trim();
+            if (!numFacture) {
+                alert('Veuillez entrer un numéro de facture!');
+                return;
+            }
+            
+            const eligible = montant >= CONFIG.SEUIL_ACHAT;
+            
+            const achat = {
+                id: data.nextAchatId++,
+                date: new Date().toLocaleDateString('fr-FR'),
+                dateISO: new Date().toISOString(),
+                clientId: clientId,
+                clientNom: client.nom,
+                boutique: boutique,
+                numFacture: numFacture,
+                montant: montant,
+                produits: document.getElementById('achatProduits').value || '-',
+                eligible: eligible,
+                vendeur: document.getElementById('achatVendeur').value || currentUser.nom,
+                carteId: null,
+                casecochee: null,
+                registeredBy: currentUser.username
+            };
+            
+            data.achats.push(achat);
+            
+            if (eligible) {
+                const carteActive = data.cartes.find(c => c.clientId === clientId && c.statut === 'En cours');
+                if (carteActive) {
+                    const premiereCaseLibre = carteActive.cases.findIndex(c => !c);
+                    if (premiereCaseLibre !== -1) {
+                        carteActive.cases[premiereCaseLibre] = true;
+                        achat.carteId = carteActive.id;
+                        achat.casecochee = premiereCaseLibre + 1;
+                        carteActive.derniereCase = new Date().toISOString();
+                        
+                        if (carteActive.cases.every(c => c)) {
+                            carteActive.statut = 'Complétée';
+                            ajouterNotification('<span class="material-icons">celebration</span> Carte complète!', 
+                                `La carte de ${client.nom} est complète! Veuillez attribuer un cadeau.`, 'success');
+                        }
+                    }
+                }
+            }
+            
+            ajouterJournal('achat', 'Enregistrement', 
+                `Achat de ${montant.toLocaleString('fr-FR')} F par ${client.nom} (Fact: ${numFacture}) ${eligible ? '(éligible)' : '(non éligible)'}`);
+            
+            sauvegarderDonnees();
+            e.target.reset();
+            document.getElementById('clientQuickInfo').style.display = 'none';
+            afficherAchats();
+            afficherCartes();
+            updateAchatStats();
+            
+            const message = eligible ? 
+                '<span class="material-icons">check</span> Achat enregistré! Une case a été cochée sur la carte.' :
+                '<span class="material-icons">check</span> Achat enregistré (montant insuffisant pour cocher une case).';
+            alert(message);
+        }
+
+        function afficherAchats() {
+            const tbody = document.getElementById('tableAchats')?.querySelector('tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const date = document.getElementById('filterAchatDate')?.value || '';
+            const boutique = document.getElementById('filterAchatBoutique')?.value || '';
+            const eligible = document.getElementById('filterAchatEligible')?.value || '';
+            
+            filteredAchats = data.achats.filter(achat => {
+                if (!checkBoutiqueAccess(achat.boutique) && !hasPermission('view_all_boutiques')) {
+                    return false;
+                }
+                
+                const matchDate = !date || achat.dateISO.split('T')[0] === date;
+                const matchBoutique = !boutique || achat.boutique === boutique;
+                const matchEligible = !eligible || 
+                    (eligible === 'eligible' && achat.eligible) ||
+                    (eligible === 'non-eligible' && !achat.eligible);
+                
+                return matchDate && matchBoutique && matchEligible;
+            });
+            
+            filteredAchats.slice().reverse().forEach(achat => {
+                const client = data.clients.find(c => c.id === achat.clientId);
+                if (!client) return;
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${achat.date}</td>
+                    <td><strong>${achat.clientNom}</strong></td>
+                    <td>${achat.boutique}</td>
+                    <td><strong>${achat.numFacture || '-'}</strong></td>
+                    <td style="font-weight: bold; color: ${achat.montant >= CONFIG.SEUIL_ACHAT ? '#28a745' : '#666'}">
+                        ${achat.montant.toLocaleString('fr-FR')} F
+                    </td>
+                    <td>${achat.produits.substring(0, 50)}${achat.produits.length > 50 ? '...' : ''}</td>
+                    <td>
+                        <span class="badge badge-${achat.eligible ? 'success' : 'secondary'}">
+                            ${achat.eligible ? '<span class="material-icons">check</span> ÉLIGIBLE' : 'Non éligible'}
+                        </span>
+                    </td>
+                    <td>${achat.carteId ? 'Carte ' + (data.cartes.find(c => c.id === achat.carteId)?.numeroCarte || '-') : '-'}</td>
+                    <td>${achat.casecochee ? 'Case ' + achat.casecochee : '-'}</td>
+                    <td>${achat.vendeur}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterAchats() {
+            afficherAchats();
+        }
+
+        function resetAchatFilters() {
+            document.getElementById('filterAchatDate').value = '';
+            document.getElementById('filterAchatBoutique').value = '';
+            document.getElementById('filterAchatEligible').value = '';
+            afficherAchats();
+        }
+
+        function showClientInfo() {
+            const clientId = parseInt(document.getElementById('achatClient').value);
+            if (!clientId) {
+                document.getElementById('clientQuickInfo').style.display = 'none';
+                return;
+            }
+            
+            const client = data.clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            const cartesClient = data.cartes.filter(c => c.clientId === clientId);
+            const cartesEnCours = cartesClient.filter(c => c.statut === 'En cours').length;
+            const cartesCompletees = cartesClient.filter(c => c.statut === 'Complétée').length;
+            const derniersAchats = data.achats
+                .filter(a => a.clientId === clientId)
+                .sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO))
+                .slice(0, 3);
+            
+            let info = `
+                <p><strong>${client.nom}</strong> (${client.telephone})</p>
+                <p>Boutique: ${client.boutique}</p>
+                <p>Cartes en cours: ${cartesEnCours}</p>
+                <p>Cartes complétées: ${cartesCompletees}</p>
+                <p>Derniers achats:</p>
+                <ul style="margin-left: 20px; font-size: 0.9em;">
+            `;
+            
+            if (derniersAchats.length > 0) {
+                derniersAchats.forEach(achat => {
+                    info += `<li>${achat.date}: ${achat.montant.toLocaleString('fr-FR')} F ${achat.eligible ? '✓' : ''}</li>`;
+                });
+            } else {
+                info += '<li>Aucun achat enregistré</li>';
+            }
+            
+            info += '</ul>';
+            
+            document.getElementById('clientQuickInfo').innerHTML = info;
+            document.getElementById('clientQuickInfo').style.display = 'block';
+        }
+
+        function updateAchatStats() {
+            const aujourdhui = new Date().toLocaleDateString('fr-FR');
+            const achatsAujourdhui = data.achats.filter(a => a.date === aujourdhui);
+            const achatsMois = data.achats.filter(a => {
+                const dateAchat = new Date(a.dateISO);
+                const maintenant = new Date();
+                return dateAchat.getMonth() === maintenant.getMonth() && 
+                       dateAchat.getFullYear() === maintenant.getFullYear();
+            });
+            
+            const aujourdhuiEl = document.getElementById('achatsAujourdhui');
+            const mensuelEl = document.getElementById('achatsMensuel');
+            const moyenEl = document.getElementById('montantMoyen');
+            
+            if (aujourdhuiEl) aujourdhuiEl.textContent = achatsAujourdhui.length;
+            if (mensuelEl) mensuelEl.textContent = 
+                achatsMois.reduce((sum, a) => sum + a.montant, 0).toLocaleString('fr-FR');
+            if (moyenEl) moyenEl.textContent = 
+                achatsMois.length > 0 ? 
+                Math.round(achatsMois.reduce((sum, a) => sum + a.montant, 0) / achatsMois.length).toLocaleString('fr-FR') : 
+                '0';
+        }
+
+        // ==================== GESTION DES CADEAUX ====================
+        function toggleAutreCadeau() {
+            const cadeauNom = document.getElementById('cadeauNom').value;
+            const container = document.getElementById('cadeauAutreContainer');
+            container.style.display = cadeauNom === 'Autre' ? 'block' : 'none';
+        }
+
+        function updateCadeauCarteOptions() {
+            const clientId = parseInt(document.getElementById('cadeauClient').value);
+            const select = document.getElementById('cadeauCarte');
+            const cartesPretes = document.getElementById('cartesPretesCadeau');
+            
+            select.innerHTML = '<option value="">-- Sélectionner --</option>';
+            cartesPretes.innerHTML = '';
+            
+            if (!clientId) return;
+            
+            const client = data.clients.find(c => c.id === clientId);
+            const cartesCompletees = data.cartes.filter(c => 
+                c.clientId === clientId && 
+                c.statut === 'Complétée' && 
+                !data.cadeaux.some(cad => cad.carteId === c.id)
+            );
+            
+            if (cartesCompletees.length > 0) {
+                cartesCompletees.forEach(carte => {
+                    const option = document.createElement('option');
+                    option.value = carte.id;
+                    option.textContent = `Carte ${carte.numeroCarte} (complétée le ${carte.derniereCase ? new Date(carte.derniereCase).toLocaleDateString('fr-FR') : 'N/A'})`;
+                    select.appendChild(option);
+                });
+                
+                cartesPretes.innerHTML = `
+                    <div style="background: #d4edda; padding: 10px; border-radius: 5px;">
+                        <strong>${cartesCompletees.length} carte(s) prête(s) pour cadeau:</strong>
+                        <ul style="margin-left: 20px; margin-top: 5px;">
+                            ${cartesCompletees.map(c => `<li>Carte ${c.numeroCarte}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                cartesPretes.innerHTML = `
+                    <div style="background: #fff3cd; padding: 10px; border-radius: 5px;">
+                        <strong>Aucune carte complétée disponible pour ce client.</strong>
+                    </div>
+                `;
+            }
+        }
+
+        function attribuerCadeau(e) {
+            e.preventDefault();
+            
+            if (!hasPermission('manage_gifts')) {
+                alert('Vous n\'avez pas la permission d\'attribuer des cadeaux.');
+                return;
+            }
+            
+            const clientId = parseInt(document.getElementById('cadeauClient').value);
+            const carteId = parseInt(document.getElementById('cadeauCarte').value);
+            const cadeauNom = document.getElementById('cadeauNom').value;
+            const cadeauAutre = document.getElementById('cadeauAutre').value;
+            const cadeauFinal = cadeauNom === 'Autre' ? cadeauAutre : cadeauNom;
+            const boutique = document.getElementById('cadeauBoutique').value;
+            
+            if (!checkBoutiqueAccess(boutique) && !hasPermission('view_all_boutiques')) {
+                alert(`Vous n'avez pas accès à la boutique ${boutique}.`);
+                return;
+            }
+            
+            if (!clientId || !carteId || !cadeauFinal || !boutique) {
+                alert('Veuillez remplir tous les champs obligatoires!');
+                return;
+            }
+            
+            const client = data.clients.find(c => c.id === clientId);
+            const carte = data.cartes.find(c => c.id === carteId);
+            
+            if (!client || !carte) {
+                alert('Veuillez sélectionner un client et une carte valides!');
+                return;
+            }
+            
+            if (data.cadeaux.some(c => c.carteId === carteId)) {
+                alert('Cette carte a déjà reçu un cadeau!');
+                return;
+            }
+            
+            const cadeau = {
+                id: data.cadeaux.length + 1,
+                date: new Date().toLocaleDateString('fr-FR'),
+                dateISO: new Date().toISOString(),
+                clientId: clientId,
+                clientNom: client.nom,
+                carteId: carteId,
+                numeroCarte: carte.numeroCarte,
+                cadeau: cadeauFinal,
+                choisiPar: document.getElementById('cadeauPar').value,
+                boutique: boutique,
+                notes: document.getElementById('cadeauNotes').value || '',
+                statut: 'En attente',
+                attribuePar: currentUser.nom
+            };
+            
+            data.cadeaux.push(cadeau);
+            const clientIndex = data.clients.findIndex(c => c.id === clientId);
+            if (clientIndex !== -1) {
+                data.clients[clientIndex].cartesCompletees++;
+            }
+            
+            creerNouvelleCarte(clientId);
+            
+            ajouterJournal('cadeau', 'Attribution', 
+                `Cadeau "${cadeauFinal}" attribué à ${client.nom} pour la carte #${carteId}`);
+            
+            sauvegarderDonnees();
+            e.target.reset();
+            document.getElementById('cadeauAutreContainer').style.display = 'none';
+            afficherCadeaux();
+            afficherCartes();
+            afficherClients();
+            
+            ajouterNotification('<span class="material-icons">card_giftcard</span> Cadeau attribué', 
+                `${client.nom} a reçu le cadeau: ${cadeauFinal}. Une nouvelle carte a été créée.`, 'success');
+            
+            alert('<span class="material-icons">check_circle</span> Cadeau attribué avec succès! Une nouvelle carte a été créée pour le client.');
+        }
+
+        function afficherCadeaux() {
+            const tbody = document.getElementById('tableCadeaux')?.querySelector('tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const statut = document.getElementById('filterCadeauStatut')?.value || '';
+            const boutique = document.getElementById('filterCadeauBoutique')?.value || '';
+            
+            filteredCadeaux = data.cadeaux.filter(cadeau => {
+                if (!checkBoutiqueAccess(cadeau.boutique) && !hasPermission('view_all_boutiques')) {
+                    return false;
+                }
+                
+                const matchStatut = !statut || cadeau.statut === statut;
+                const matchBoutique = !boutique || cadeau.boutique === boutique;
+                
+                return matchStatut && matchBoutique;
+            });
+            
+            filteredCadeaux.slice().reverse().forEach(cadeau => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${cadeau.date}</td>
+                    <td><strong>${cadeau.clientNom}</strong></td>
+                    <td>Carte ${cadeau.numeroCarte}</td>
+                    <td>${cadeau.cadeau}</td>
+                    <td>${cadeau.choisiPar}</td>
+                    <td>${cadeau.boutique}</td>
+                    <td>${cadeau.notes.substring(0, 30)}${cadeau.notes.length > 30 ? '...' : ''}</td>
+                    <td>
+                        <span class="badge badge-${cadeau.statut === 'Remis' ? 'success' : cadeau.statut === 'En attente' ? 'warning' : 'danger'}">
+                            ${cadeau.statut}
+                        </span>
+                    </td>
+                    <td>
+                        ${cadeau.statut === 'En attente' ? 
+                            `<button class="btn btn-sm btn-success" onclick="marquerRemis(${cadeau.id})" style="padding: 5px 10px; font-size: 0.9em; margin-right: 5px;">
+                                <span class="material-icons">check_circle</span> Remis
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="annulerCadeau(${cadeau.id})" style="padding: 5px 10px; font-size: 0.9em;">
+                                <span class="material-icons">cancel</span> Annuler
+                            </button>` : 
+                            cadeau.statut === 'Remis' ? 
+                            '<span style="color: green; font-weight: bold;"><span class="material-icons">check</span> Remis</span>' :
+                            '<span style="color: #dc3545; font-weight: bold;">✗ Annulé</span>'}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterCadeaux() {
+            afficherCadeaux();
+        }
+
+        function resetCadeauFilters() {
+            document.getElementById('filterCadeauStatut').value = '';
+            document.getElementById('filterCadeauBoutique').value = '';
+            afficherCadeaux();
+        }
+
+        function marquerRemis(cadeauId) {
+            const cadeau = data.cadeaux.find(c => c.id === cadeauId);
+            if (cadeau && cadeau.statut === 'En attente') {
+                cadeau.statut = 'Remis';
+                cadeau.dateRemise = new Date().toISOString();
+                
+                ajouterJournal('cadeau', 'Remise', 
+                    `Cadeau "${cadeau.cadeau}" remis à ${cadeau.clientNom}`);
+                sauvegarderDonnees();
+                afficherCadeaux();
+                
+                ajouterNotification('Cadeau remis', 
+                    `Le cadeau ${cadeau.cadeau} a été remis à ${cadeau.clientNom}.`, 'info');
+            }
+        }
+
+        function annulerCadeau(cadeauId) {
+            const cadeau = data.cadeaux.find(c => c.id === cadeauId);
+            if (cadeau && confirm(`Annuler l'attribution du cadeau "${cadeau.cadeau}" à ${cadeau.clientNom} ?`)) {
+                cadeau.statut = 'Annulé';
+                
+                ajouterJournal('cadeau', 'Annulation', 
+                    `Cadeau "${cadeau.cadeau}" annulé pour ${cadeau.clientNom}`);
+                sauvegarderDonnees();
+                afficherCadeaux();
+                
+                ajouterNotification('Cadeau annulé', 
+                    `L'attribution du cadeau ${cadeau.cadeau} a été annulée.`, 'warning');
+            }
+        }
+
+        // ==================== JOURNAL D'ACTIVITÉS ====================
+        function ajouterJournal(type, action, details) {
+            const entry = {
+                type: type,
+                action: action,
+                details: details,
+                user: currentUser ? currentUser.nom : 'system',
+                timestamp: new Date().toISOString()
+            };
+            
+            data.journal.unshift(entry);
+            
+            if (data.journal.length > 1000) {
+                data.journal = data.journal.slice(0, 1000);
+            }
+            
+            sauvegarderDonnees();
+        }
+
+        function afficherJournal() {
+            const container = document.getElementById('journalEntries');
+            if (!container) return;
+            
+            const type = document.getElementById('filterJournalType')?.value || '';
+            const user = document.getElementById('filterJournalUser')?.value || '';
+            const date = document.getElementById('filterJournalDate')?.value || '';
+            
+            const filtered = data.journal.filter(entry => {
+                const matchType = !type || entry.type === type;
+                const matchUser = !user || entry.user === user;
+                const matchDate = !date || entry.timestamp.split('T')[0] === date;
+                
+                return matchType && matchUser && matchDate;
+            });
+            
+            container.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Aucune activité</div>';
+                return;
+            }
+            
+            filtered.slice(0, 50).forEach(entry => {
+                const div = document.createElement('div');
+                div.className = 'activity-item';
+                div.innerHTML = `
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <strong>${entry.action}</strong>
+                            <span class="badge badge-${entry.type === 'client' ? 'success' : entry.type === 'achat' ? 'info' : entry.type === 'cadeau' ? 'warning' : 'danger'}">
+                                ${entry.type}
+                            </span>
+                        </div>
+                        <small>${entry.user}</small>
+                    </div>
+                    <div style="font-size: 0.9em; color: #666; margin-top: 5px;">
+                        ${entry.details}
+                    </div>
+                    <div style="font-size: 0.8em; color: #999; margin-top: 5px;">
+                        ${new Date(entry.timestamp).toLocaleDateString('fr-FR')} 
+                        ${new Date(entry.timestamp).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Mettre à jour la liste des utilisateurs dans le filtre
+            const users = [...new Set(data.journal.map(j => j.user))];
+            const select = document.getElementById('filterJournalUser');
+            if (select) {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Tous les utilisateurs</option>';
+                users.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user;
+                    option.textContent = user;
+                    select.appendChild(option);
+                });
+                select.value = currentValue;
+            }
+        }
+
+        function filterJournal() {
+            afficherJournal();
+        }
+
+        function resetJournalFilters() {
+            document.getElementById('filterJournalType').value = '';
+            document.getElementById('filterJournalUser').value = '';
+            document.getElementById('filterJournalDate').value = '';
+            afficherJournal();
+        }
+
+        function clearJournal() {
+            if (data.journal.length > 0 && confirm('Vider complètement le journal des activités ?')) {
+                data.journal = [];
+                sauvegarderDonnees();
+                afficherJournal();
+                ajouterNotification('Journal vidé', 'Le journal des activités a été vidé.', 'info');
+            }
+        }
+
+        // ==================== GESTION DES UTILISATEURS ====================
+        function showAddUserForm() {
+            if (!hasPermission('manage_users')) {
+                alert('Vous n\'avez pas la permission de gérer les utilisateurs.');
+                return;
+            }
+            document.getElementById('addUserForm').style.display = 'block';
+        }
+
+        function hideAddUserForm() {
+            document.getElementById('addUserForm').style.display = 'none';
+            document.getElementById('userForm').reset();
+            document.getElementById('userBoutiqueContainer').style.display = 'none';
+        }
+
+        function toggleBoutiqueField() {
+            const role = document.getElementById('userRole').value;
+            const container = document.getElementById('userBoutiqueContainer');
+            container.style.display = (role === 'boutique' || role === 'vendeur') ? 'block' : 'none';
+            if (container.style.display === 'block') {
+                document.getElementById('userBoutique').required = true;
+            } else {
+                document.getElementById('userBoutique').required = false;
+            }
+        }
+
+        function ajouterUtilisateur(e) {
+            e.preventDefault();
+            
+            if (!hasPermission('manage_users')) {
+                alert('Vous n\'avez pas la permission de gérer les utilisateurs.');
+                return;
+            }
+            
+            const username = document.getElementById('userUsername').value.trim();
+            const existingUser = data.utilisateurs.find(u => u.username === username);
+            if (existingUser) {
+                alert('Ce nom d\'utilisateur existe déjà!');
+                return;
+            }
+            
+            const role = document.getElementById('userRole').value;
+            let boutique = '';
+            
+            if (role === 'boutique' || role === 'vendeur') {
+                boutique = document.getElementById('userBoutique').value;
+                if (!boutique) {
+                    alert('Veuillez sélectionner une boutique pour ce rôle.');
+                    return;
+                }
+            }
+            
+            const user = {
+                id: data.nextUserId++,
+                nom: document.getElementById('userNom').value.trim(),
+                username: username,
+                password: document.getElementById('userPassword').value,
+                role: role,
+                boutique: boutique,
+                dateCreation: new Date().toISOString(),
+                lastLogin: null,
+                statut: 'Actif',
+                permissions: CONFIG.ROLES[role]?.permissions || [],
+                createdBy: currentUser.username
+            };
+            
+            data.utilisateurs.push(user);
+            ajouterJournal('utilisateur', 'Création', `Utilisateur ${user.nom} (${user.role}) créé`);
+            sauvegarderDonnees();
+            hideAddUserForm();
+            afficherUtilisateurs();
+            
+            ajouterNotification('Nouvel utilisateur', `${user.nom} a été ajouté comme ${CONFIG.ROLES[role]?.name}.`, 'success');
+            alert('<span class="material-icons">check_circle</span> Utilisateur créé avec succès!');
+        }
+
+        function afficherUtilisateurs() {
+            const tbody = document.getElementById('tableUtilisateurs')?.querySelector('tbody');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            data.utilisateurs.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${user.id}</td>
+                    <td><strong>${user.nom}</strong></td>
+                    <td>${user.username}</td>
+                    <td><span class="badge role-${user.role}">${CONFIG.ROLES[user.role]?.name || user.role}</span></td>
+                    <td>${user.boutique || '-'}</td>
+                    <td>${new Date(user.dateCreation).toLocaleDateString('fr-FR')}</td>
+                    <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('fr-FR') : 'Jamais'}</td>
+                    <td><span class="badge badge-${user.statut === 'Actif' ? 'success' : 'danger'}">${user.statut}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="toggleUserStatus(${user.id})" style="padding: 5px 10px; font-size: 0.9em;">
+                            ${user.statut === 'Actif' ? '<span class="material-icons">cancel</span> Désactiver' : '<span class="material-icons">check_circle</span> Activer'}
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function toggleUserStatus(userId) {
+            if (!hasPermission('manage_users')) {
+                alert('Vous n\'avez pas la permission de gérer les utilisateurs.');
+                return;
+            }
+            
+            const user = data.utilisateurs.find(u => u.id === userId);
+            if (!user) return;
+            
+            if (user.id === currentUser.id) {
+                alert('Vous ne pouvez pas désactiver votre propre compte!');
+                return;
+            }
+            
+            const newStatus = user.statut === 'Actif' ? 'Inactif' : 'Actif';
+            user.statut = newStatus;
+            
+            ajouterJournal('utilisateur', 'Modification', `Statut de ${user.nom} changé en ${newStatus}`);
+            sauvegarderDonnees();
+            afficherUtilisateurs();
+            
+            ajouterNotification('Statut utilisateur', `${user.nom} a été ${newStatus === 'Actif' ? 'activé' : 'désactivé'}.`, 'info');
+        }
+
+        // ==================== TABLEAU DE BORD ====================
+        function afficherDashboard() {
+            const statsGrid = document.getElementById('statsGrid');
+            if (!statsGrid) return;
+            
+            const totalClients = data.clients.length;
+            const clientsActifs = data.clients.filter(c => c.statut === 'Actif').length;
+            const cartesEnCours = data.cartes.filter(c => c.statut === 'En cours').length;
+            const cartesCompletees = data.cartes.filter(c => c.statut === 'Complétée').length;
+            const cartesPretesCadeau = data.cartes.filter(c => 
+                c.statut === 'Complétée' && 
+                !data.cadeaux.some(cad => cad.carteId === c.id)
+            ).length;
+            const cadeauxAttribues = data.cadeaux.length;
+            const cadeauxRemis = data.cadeaux.filter(c => c.statut === 'Remis').length;
+            const montantTotal = data.achats.reduce((sum, a) => sum + a.montant, 0);
+            const montantEligible = data.achats.filter(a => a.eligible).reduce((sum, a) => sum + a.montant, 0);
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <h3>${totalClients}</h3>
+                    <p>Clients VIP</p>
+                    <small>${clientsActifs} actifs</small>
+                </div>
+                <div class="stat-card">
+                    <h3>${cartesEnCours}</h3>
+                    <p>Cartes en Cours</p>
+                </div>
+                <div class="stat-card">
+                    <h3>${cartesCompletees}</h3>
+                    <p>Cartes Complétées</p>
+                    <small>${cartesPretesCadeau} prêtes pour cadeau</small>
+                </div>
+                <div class="stat-card">
+                    <h3>${cadeauxAttribues}</h3>
+                    <p>Cadeaux Attribués</p>
+                    <small>${cadeauxRemis} remis</small>
+                </div>
+                <div class="stat-card">
+                    <h3>${montantTotal.toLocaleString('fr-FR')}</h3>
+                    <p>CA Total (F CFA)</p>
+                    <small>${montantEligible.toLocaleString('fr-FR')} F éligible</small>
+                </div>
+                <div class="stat-card">
+                    <h3>${data.achats.length}</h3>
+                    <p>Achats enregistrés</p>
+                    <small>${data.achats.filter(a => a.eligible).length} éligibles</small>
+                </div>
+            `;
+            
+            // Top clients
+            const topClients = [...data.clients]
+                .map(client => {
+                    const achatsClient = data.achats.filter(a => a.clientId === client.id);
+                    const montantTotal = achatsClient.reduce((sum, a) => sum + a.montant, 0);
+                    return { ...client, montantTotal };
+                })
+                .sort((a, b) => b.montantTotal - a.montantTotal)
+                .slice(0, 5);
+            
+            const topClientsEl = document.getElementById('topClients');
+            if (topClientsEl) {
+                topClientsEl.innerHTML = topClients.map((client, index) => `
+                    <div style="padding: 8px 0; border-bottom: ${index < 4 ? '1px solid #dee2e6' : 'none'};">
+                        ${index + 1}. ${client.nom}<br>
+                        <small>${client.montantTotal.toLocaleString('fr-FR')} F • ${client.boutique}</small>
+                    </div>
+                `).join('');
+            }
+            
+            // Activité récente
+            const activites = [...data.journal]
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                .slice(0, 10);
+            
+            const activiteEl = document.getElementById('activiteRecent');
+            if (activiteEl) {
+                activiteEl.innerHTML = activites.map(act => `
+                    <div style="padding: 8px 0; border-bottom: ${activites.indexOf(act) < 9 ? '1px solid #dee2e6' : 'none'}; font-size: 0.85em;">
+                        <strong>${act.type === 'client' ? '<span class="material-icons">person</span>' : act.type === 'achat' ? '<span class="material-icons">shopping_cart</span>' : act.type === 'cadeau' ? '<span class="material-icons">card_giftcard</span>' : '<span class="material-icons">settings</span>'}</strong>
+                        ${act.action}: ${act.details}<br>
+                        <small style="color: #666;">${new Date(act.timestamp).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</small>
+                    </div>
+                `).join('');
+            }
+            
+            // Stats par boutique
+            const boutiques = CONFIG.BOUTIQUES;
+            const tbody = document.getElementById('tableBoutiques')?.querySelector('tbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                
+                boutiques.forEach(boutique => {
+                    const clientsBoutique = data.clients.filter(c => c.boutique === boutique);
+                    const achatsBoutique = data.achats.filter(a => a.boutique === boutique);
+                    const cartesBoutique = data.cartes.filter(c => {
+                        const client = data.clients.find(cl => cl.id === c.clientId);
+                        return client && client.boutique === boutique && c.statut === 'En cours';
+                    }).length;
+                    const cartesCompletesBoutique = data.cartes.filter(c => {
+                        const client = data.clients.find(cl => cl.id === c.clientId);
+                        return client && client.boutique === boutique && c.statut === 'Complétée';
+                    }).length;
+                    const cadeauxBoutique = data.cadeaux.filter(c => c.boutique === boutique && c.statut === 'Remis').length;
+                    const montantBoutique = achatsBoutique.reduce((sum, a) => sum + a.montant, 0);
+                    const moyenneBoutique = achatsBoutique.length > 0 ? Math.round(montantBoutique / achatsBoutique.length) : 0;
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${boutique}</strong></td>
+                        <td>${clientsBoutique.length}</td>
+                        <td>${cartesBoutique}</td>
+                        <td>${cartesCompletesBoutique}</td>
+                        <td>${cadeauxBoutique}</td>
+                        <td>${montantBoutique.toLocaleString('fr-FR')}</td>
+                        <td>${moyenneBoutique.toLocaleString('fr-FR')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+            
+            // Graphique d'évolution
+            creerGraphiqueEvolution();
+        }
+
+        function creerGraphiqueEvolution() {
+            const ctx = document.getElementById('evolutionChart')?.getContext('2d');
+            if (!ctx) return;
+            
+            const mois = [];
+            const clientsData = [];
+            const achatsData = [];
+            const cadeauxData = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date();
+                date.setMonth(date.getMonth() - i);
+                const moisNom = date.toLocaleDateString('fr-FR', { month: 'short' });
+                mois.push(moisNom.charAt(0).toUpperCase() + moisNom.slice(1));
+                
+                const debutMois = new Date(date.getFullYear(), date.getMonth(), 1);
+                const finMois = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                
+                clientsData.push(
+                    data.clients.filter(c => {
+                        const dateClient = new Date(c.dateCreation);
+                        return dateClient >= debutMois && dateClient <= finMois;
+                    }).length
+                );
+                
+                achatsData.push(
+                    data.achats.filter(a => {
+                        const dateAchat = new Date(a.dateISO);
+                        return dateAchat >= debutMois && dateAchat <= finMois;
+                    }).length
+                );
+                
+                cadeauxData.push(
+                    data.cadeaux.filter(c => {
+                        const dateCadeau = new Date(c.dateISO);
+                        return dateCadeau >= debutMois && dateCadeau <= finMois;
+                    }).length
+                );
+            }
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: mois,
+                    datasets: [
+                        {
+                            label: 'Nouveaux Clients',
+                            data: clientsData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Achats',
+                            data: achatsData,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Cadeaux',
+                            data: cadeauxData,
+                            borderColor: '#ffc107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Évolution sur 6 mois'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== NOTIFICATIONS ====================
+        function ajouterNotification(titre, message, type = 'info') {
+            const notification = {
+                id: data.nextNotifId++,
+                titre: titre,
+                message: message,
+                type: type,
+                date: new Date().toISOString(),
+                lue: false
+            };
+            
+            data.notifications.unshift(notification);
+            sauvegarderDonnees();
+            updateNotificationBadge();
+            
+            if (currentUser) {
+                showToast(titre, message, type);
+            }
+        }
+
+        function checkNotifications() {
+            const cartesPresqueCompletes = data.cartes.filter(c => {
+                if (c.statut !== 'En cours') return false;
+                const casesCompletes = c.cases.filter(c => c).length;
+                return casesCompletes >= 8 && casesCompletes < 10;
+            });
+            
+            cartesPresqueCompletes.forEach(carte => {
+                const casesCompletes = carte.cases.filter(c => c).length;
+                const notificationExist = data.notifications.some(n => 
+                    n.message.includes(`Carte #${carte.id}`) && 
+                    n.message.includes('presque complète')
+                );
+                
+                if (!notificationExist) {
+                    ajouterNotification(
+                        '📊 Carte presque complète',
+                        `La carte #${carte.id} de ${carte.clientNom} a ${casesCompletes}/10 cases (${10 - casesCompletes} restantes).`,
+                        'warning'
+                    );
+                }
+            });
+            
+            const septJours = 7 * 24 * 60 * 60 * 1000;
+            const cadeauxEnAttente = data.cadeaux.filter(c => 
+                c.statut === 'En attente' && 
+                (new Date() - new Date(c.dateISO)) > septJours
+            );
+            
+            cadeauxEnAttente.forEach(cadeau => {
+                const notificationExist = data.notifications.some(n => 
+                    n.message.includes(`Cadeau ${cadeau.id}`) && 
+                    n.message.includes('en attente')
+                );
+                
+                if (!notificationExist) {
+                    const jours = Math.floor((new Date() - new Date(cadeau.dateISO)) / (1000 * 60 * 60 * 24));
+                    ajouterNotification(
+                        '⏰ Cadeau en attente',
+                        `Le cadeau "${cadeau.cadeau}" pour ${cadeau.clientNom} est en attente depuis ${jours} jours.`,
+                        'warning'
+                    );
+                }
+            });
+            
+            afficherNotifications();
+        }
+
+        function showNotifications(event) {
+            const panel = document.getElementById('notificationsPanel');
+            panel.classList.toggle('active');
+            event.stopPropagation();
+        }
+
+        function afficherNotifications() {
+            const container = document.getElementById('notificationsList');
+            if (!container) return;
+            
+            const notifications = data.notifications.slice(0, 20);
+            
+            container.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Aucune notification</div>';
+                return;
+            }
+            
+            notifications.forEach(notif => {
+                const div = document.createElement('div');
+                div.className = `notification-item ${notif.lue ? '' : 'unread'}`;
+                div.innerHTML = `
+                    <div style="font-weight: ${notif.lue ? 'normal' : 'bold'}">
+                        <strong>${notif.titre}</strong>
+                        <p style="margin: 5px 0; font-size: 0.9em;">${notif.message}</p>
+                        <div class="notification-time">
+                            ${new Date(notif.date).toLocaleDateString('fr-FR')} 
+                            ${new Date(notif.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}
+                        </div>
+                    </div>
+                `;
+                
+                div.addEventListener('click', () => {
+                    notif.lue = true;
+                    sauvegarderDonnees();
+                    afficherNotifications();
+                    updateNotificationBadge();
+                });
+                
+                container.appendChild(div);
+            });
+        }
+
+        function clearAllNotifications() {
+            if (data.notifications.length > 0 && confirm('Effacer toutes les notifications ?')) {
+                data.notifications = [];
+                sauvegarderDonnees();
+                afficherNotifications();
+                updateNotificationBadge();
+            }
+        }
+
+        function updateNotificationBadge() {
+            const nonLues = data.notifications.filter(n => !n.lue).length;
+            const badge = document.getElementById('notifCount');
+            
+            if (badge) {
+                if (nonLues > 0) {
+                    badge.textContent = nonLues > 99 ? '99+' : nonLues;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+            
+            const cartesPresqueCompletes = data.cartes.filter(c => {
+                if (c.statut !== 'En cours') return false;
+                const casesCompletes = c.cases.filter(c => c).length;
+                return casesCompletes >= 8;
+            }).length;
+            
+            const clientsNotification = document.getElementById('clientsNotification');
+            const cartesNotification = document.getElementById('cartesNotification');
+            const cadeauxNotification = document.getElementById('cadeauxNotification');
+            
+            if (cartesPresqueCompletes > 0 && cartesNotification) {
+                cartesNotification.textContent = cartesPresqueCompletes;
+                cartesNotification.style.display = 'flex';
+            } else if (cartesNotification) {
+                cartesNotification.style.display = 'none';
+            }
+            
+            const cadeauxEnAttente = data.cadeaux.filter(c => c.statut === 'En attente').length;
+            if (cadeauxEnAttente > 0 && cadeauxNotification) {
+                cadeauxNotification.textContent = cadeauxEnAttente;
+                cadeauxNotification.style.display = 'flex';
+            } else if (cadeauxNotification) {
+                cadeauxNotification.style.display = 'none';
+            }
+        }
+
+        function showToast(titre, message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px;
+                background: ${type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : type === 'error' ? '#dc3545' : '#17a2b8'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 10000;
+                max-width: 300px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            toast.innerHTML = `
+                <strong>${titre}</strong>
+                <p style="margin: 5px 0 0; font-size: 0.9em;">${message}</p>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // ==================== FONCTIONS DIVERSES ====================
+        function setupEventListeners() {
+            // Fermer les notifications en cliquant ailleurs
+            document.addEventListener('click', function(event) {
+                const panel = document.getElementById('notificationsPanel');
+                if (panel && panel.classList.contains('active') && 
+                    !event.target.closest('.notifications-panel') && 
+                    !event.target.closest('.notifications')) {
+                    panel.classList.remove('active');
+                }
+            });
+            
+            // Fermer le modal en cliquant en dehors
+            document.addEventListener('click', function(event) {
+                const modal = document.getElementById('modalCarte');
+                if (modal && modal.classList.contains('active') && 
+                    event.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+            
+            // Écouter le changement pour le champ "Autre" des cadeaux
+            const cadeauNomSelect = document.getElementById('cadeauNom');
+            if (cadeauNomSelect) {
+                cadeauNomSelect.addEventListener('change', toggleAutreCadeau);
+            }
+            
+            // Écouter le changement pour le rôle utilisateur
+            const userRoleSelect = document.getElementById('userRole');
+            if (userRoleSelect) {
+                userRoleSelect.addEventListener('change', toggleBoutiqueField);
+            }
+        }
+
+        function rafraichirInterface() {
+            filteredClients = [];
+            filteredCartes = [];
+            filteredAchats = [];
+            filteredCadeaux = [];
+            filteredUsers = [];
+            
+            majSelectClients();
+            updateBoutiqueFilters();
+            updateNotificationBadge();
+            
+            const activeSection = document.querySelector('.content-section.active');
+            if (activeSection) {
+                switch(activeSection.id) {
+                    case 'dashboard':
+                        afficherDashboard();
+                        break;
+                    case 'clients':
+                        afficherClients();
+                        break;
+                    case 'cartes':
+                        afficherCartes();
+                        break;
+                    case 'achats':
+                        afficherAchats();
+                        updateAchatStats();
+                        break;
+                    case 'cadeaux':
+                        afficherCadeaux();
+                        break;
+                    case 'journal':
+                        afficherJournal();
+                        break;
+                    case 'utilisateurs':
+                        afficherUtilisateurs();
+                        break;
+                }
+            }
+        }
+
+        function majSelectClients() {
+            const selects = [
+                document.getElementById('achatClient'),
+                document.getElementById('cadeauClient')
+            ].filter(el => el !== null);
+            
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">-- Sélectionner un client --</option>';
+                
+                data.clients.forEach(client => {
+                    if (client.statut === 'Actif') {
+                        if (checkBoutiqueAccess(client.boutique) || hasPermission('view_all_boutiques')) {
+                            const option = document.createElement('option');
+                            option.value = client.id;
+                            option.textContent = `${client.nom} (${client.telephone}) - ${client.boutique}`;
+                            select.appendChild(option);
+                        }
+                    }
+                });
+                
+                if (currentValue) {
+                    select.value = currentValue;
+                }
+            });
+        }
+
+        function autoBackup() {
+            if (data.clients.length > 0 || data.achats.length > 0) {
+                const backupData = {
+                    app: CONFIG.APP_NAME,
+                    version: CONFIG.VERSION,
+                    date: new Date().toISOString(),
+                    data: data,
+                    user: currentUser ? currentUser.name : 'auto'
+                };
+                
+                const backupKey = `auto_backup_${new Date().toISOString().replace(/[:.]/g, '-')}`;
+                localStorage.setItem(backupKey, JSON.stringify(backupData));
+                
+                const backups = Object.keys(localStorage)
+                    .filter(key => key.startsWith('auto_backup_'))
+                    .sort()
+                    .reverse();
+                
+                if (backups.length > 10) {
+                    backups.slice(10).forEach(key => localStorage.removeItem(key));
+                }
+            }
+        }
+
+        // ==================== FONCTIONS D'EXPORT ====================
+        function exporterExcel() {
+            try {
+                const wb = XLSX.utils.book_new();
+                
+                // Feuille Clients VIP
+                const clientsData = [
+                    ['ID', 'Nom', 'Téléphone', 'Email', 'Boutique', 'Date Inscription', 'Cartes Complétées', 'Statut', 'Notes', 'Date Création'],
+                    ...data.clients.map(c => [c.id, c.nom, c.telephone, c.email || '', c.boutique, c.dateInscription, c.cartesCompletees, c.statut, c.notes || '', c.dateCreation])
+                ];
+                const ws1 = XLSX.utils.aoa_to_sheet(clientsData);
+                XLSX.utils.book_append_sheet(wb, ws1, 'Clients VIP');
+                
+                // Feuille Cartes de Fidélité
+                const cartesData = [
+                    ['ID Carte', 'ID Client', 'Nom Client', 'Téléphone', 'N° Carte', 'Date Création', 'Statut', 'Case 1', 'Case 2', 'Case 3', 'Case 4', 'Case 5', 'Case 6', 'Case 7', 'Case 8', 'Case 9', 'Case 10', 'Dernière Case', 'Cases Cochées'],
+                    ...data.cartes.map(c => [
+                        c.id, c.clientId, c.clientNom, c.clientTelephone, c.numeroCarte, c.dateCreation, c.statut,
+                        ...c.cases.map(checked => checked ? 'OUI' : 'NON'),
+                        c.derniereCase ? new Date(c.derniereCase).toLocaleDateString('fr-FR') : '',
+                        c.cases.filter(x => x).length
+                    ])
+                ];
+                const ws2 = XLSX.utils.aoa_to_sheet(cartesData);
+                XLSX.utils.book_append_sheet(wb, ws2, 'Cartes Fidélité');
+                
+                // Feuille Historique Achats
+                const achatsData = [
+                    ['ID', 'Date', 'ID Client', 'Nom Client', 'Boutique', 'Montant', 'Produits', 'Éligible', 'ID Carte', 'Case Cochée', 'Vendeur', 'Date ISO'],
+                    ...data.achats.map(a => [
+                        a.id, a.date, a.clientId, a.clientNom, a.boutique, a.montant, a.produits,
+                        a.eligible ? 'OUI' : 'NON', a.carteId || '', a.casecochee || '', a.vendeur, a.dateISO
+                    ])
+                ];
+                const ws3 = XLSX.utils.aoa_to_sheet(achatsData);
+                XLSX.utils.book_append_sheet(wb, ws3, 'Historique Achats');
+                
+                // Feuille Cadeaux
+                const cadeauxData = [
+                    ['ID', 'Date', 'ID Client', 'Nom Client', 'ID Carte', 'N° Carte', 'Cadeau', 'Choisi Par', 'Boutique', 'Notes', 'Statut', 'Attribué Par', 'Date Remise', 'Date ISO'],
+                    ...data.cadeaux.map(c => [
+                        c.id, c.date, c.clientId, c.clientNom, c.carteId, c.numeroCarte, c.cadeau, c.choisiPar, 
+                        c.boutique, c.notes, c.statut, c.attribuePar || '', c.dateRemise || '', c.dateISO
+                    ])
+                ];
+                const ws4 = XLSX.utils.aoa_to_sheet(cadeauxData);
+                XLSX.utils.book_append_sheet(wb, ws4, 'Cadeaux');
+                
+                // Feuille Journal
+                const journalData = [
+                    ['Type', 'Action', 'Détails', 'Utilisateur', 'Date/Heure'],
+                    ...data.journal.map(j => [
+                        j.type, j.action, j.details, j.user, new Date(j.timestamp).toLocaleString('fr-FR')
+                    ])
+                ];
+                const ws5 = XLSX.utils.aoa_to_sheet(journalData);
+                XLSX.utils.book_append_sheet(wb, ws5, 'Journal Activités');
+                
+                // Feuille Utilisateurs
+                const usersData = [
+                    ['ID', 'Nom', 'Nom d\'utilisateur', 'Rôle', 'Boutique', 'Date Création', 'Dernière Connexion', 'Statut', 'Créé par'],
+                    ...data.utilisateurs.map(u => [
+                        u.id, u.nom, u.username, CONFIG.ROLES[u.role]?.name || u.role, u.boutique || '',
+                        new Date(u.dateCreation).toLocaleDateString('fr-FR'),
+                        u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('fr-FR') : 'Jamais',
+                        u.statut, u.createdBy || ''
+                    ])
+                ];
+                const ws6 = XLSX.utils.aoa_to_sheet(usersData);
+                XLSX.utils.book_append_sheet(wb, ws6, 'Utilisateurs');
+                
+                // Télécharger le fichier
+                const date = new Date().toISOString().split('T')[0];
+                XLSX.writeFile(wb, `Gestion_VIP_${date}.xlsx`);
+                
+                ajouterJournal('systeme', 'Export Excel', 'Export complet des données vers Excel');
+                ajouterNotification('Export réussi', 'Toutes les données ont été exportées vers Excel.', 'success');
+            } catch (error) {
+                console.error('Erreur export Excel:', error);
+                alert('Erreur lors de l\'export Excel: ' + error.message);
+            }
+        }
+
+        function showExportSelectif() {
+            document.getElementById('exportSelectif').style.display = 'block';
+        }
+
+        function hideExportSelectif() {
+            document.getElementById('exportSelectif').style.display = 'none';
+        }
+
+        function exporterSelectif() {
+            try {
+                const wb = XLSX.utils.book_new();
+                const date = new Date().toISOString().split('T')[0];
+                let fileName = `Gestion_VIP_Selectif_${date}`;
+                let hasData = false;
+                
+                if (document.getElementById('expClients').checked) {
+                    const clientsData = [
+                        ['ID', 'Nom', 'Téléphone', 'Email', 'Boutique', 'Date Inscription', 'Cartes Complétées', 'Statut'],
+                        ...data.clients.map(c => [c.id, c.nom, c.telephone, c.email || '', c.boutique, c.dateInscription, c.cartesCompletees, c.statut])
+                    ];
+                    const ws = XLSX.utils.aoa_to_sheet(clientsData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Clients VIP');
+                    hasData = true;
+                }
+                
+                if (document.getElementById('expCartes').checked) {
+                    const cartesData = [
+                        ['ID Carte', 'Nom Client', 'N° Carte', 'Date Création', 'Statut', 'Cases Cochées'],
+                        ...data.cartes.map(c => [
+                            c.id, c.clientNom, c.numeroCarte, c.dateCreation, c.statut,
+                            c.cases.filter(x => x).length + '/10'
+                        ])
+                    ];
+                    const ws = XLSX.utils.aoa_to_sheet(cartesData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Cartes Fidélité');
+                    hasData = true;
+                }
+                
+                if (document.getElementById('expAchats').checked) {
+                    const achatsData = [
+                        ['Date', 'Client', 'Boutique', 'Montant', 'Éligible', 'Case Cochée'],
+                        ...data.achats.map(a => [
+                            a.date, a.clientNom, a.boutique, a.montant,
+                            a.eligible ? 'OUI' : 'NON', a.casecochee || '-'
+                        ])
+                    ];
+                    const ws = XLSX.utils.aoa_to_sheet(achatsData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Achats');
+                    hasData = true;
+                }
+                
+                if (document.getElementById('expCadeaux').checked) {
+                    const cadeauxData = [
+                        ['Date', 'Client', 'Carte N°', 'Cadeau', 'Statut', 'Boutique'],
+                        ...data.cadeaux.map(c => [
+                            c.date, c.clientNom, c.numeroCarte, c.cadeau, c.statut, c.boutique
+                        ])
+                    ];
+                    const ws = XLSX.utils.aoa_to_sheet(cadeauxData);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Cadeaux');
+                    hasData = true;
+                }
+                
+                if (hasData) {
+                    XLSX.writeFile(wb, `${fileName}.xlsx`);
+                    hideExportSelectif();
+                    ajouterNotification('Export réussi', 'Export sélectif terminé avec succès.', 'success');
+                } else {
+                    alert('Veuillez sélectionner au moins un type de données à exporter.');
+                }
+            } catch (error) {
+                console.error('Erreur export sélectif:', error);
+                alert('Erreur lors de l\'export: ' + error.message);
+            }
+        }
+
+        function backupCloud() {
+            const backupData = {
+                app: CONFIG.APP_NAME,
+                version: CONFIG.VERSION,
+                date: new Date().toISOString(),
+                data: data,
+                user: currentUser ? currentUser.nom : 'unknown'
+            };
+            
+            const backupKey = `backup_${new Date().toISOString().replace(/[:.]/g, '-')}`;
+            localStorage.setItem(backupKey, JSON.stringify(backupData));
+            
+            const backups = Object.keys(localStorage)
+                .filter(key => key.startsWith('backup_'))
+                .sort()
+                .reverse();
+            
+            if (backups.length > 5) {
+                backups.slice(5).forEach(key => localStorage.removeItem(key));
+            }
+            
+            ajouterNotification('<span class="material-icons">cloud_done</span> Sauvegarde cloud', 'Vos données ont été sauvegardées localement.', 'success');
+            alert('<span class="material-icons">check_circle</span> Sauvegarde cloud simulée.');
+        }
+
+        function restoreCloud() {
+            const backups = Object.keys(localStorage)
+                .filter(key => key.startsWith('backup_'))
+                .sort()
+                .reverse();
+            
+            if (backups.length === 0) {
+                alert('Aucune sauvegarde cloud trouvée.');
+                return;
+            }
+            
+            if (confirm('Restaurer la dernière sauvegarde ? Les données actuelles seront remplacées.')) {
+                const lastBackup = localStorage.getItem(backups[0]);
+                try {
+                    const backupData = JSON.parse(lastBackup);
+                    data = backupData.data;
+                    sauvegarderDonnees();
+                    rafraichirInterface();
+                    
+                    ajouterNotification('<span class="material-icons">autorenew</span> Restauration', 'Données restaurées depuis la sauvegarde cloud.', 'success');
+                    alert('<span class="material-icons">check_circle</span> Données restaurées avec succès!');
+                } catch (error) {
+                    alert('<span class="material-icons">error</span> Erreur lors de la restauration des données.');
+                }
+            }
+        }
+
+        function reinitialiserDonnees() {
+            if (confirm('[warning] ATTENTION : Voulez-vous vraiment réinitialiser TOUTES les données ?')) {
+                
+                if (confirm('Êtes-vous ABSOLUMENT SÛR ? Tapez "RESET" pour confirmer :') && 
+                    prompt('Tapez "RESET" pour confirmer :') === 'RESET') {
+                    
+                    const backupData = {
+                        app: CONFIG.APP_NAME,
+                        version: CONFIG.VERSION,
+                        date: new Date().toISOString(),
+                        data: data,
+                        user: currentUser ? currentUser.nom : 'reset'
+                    };
+                    
+                    const backupKey = `reset_backup_${new Date().toISOString().replace(/[:.]/g, '-')}`;
+                    localStorage.setItem(backupKey, JSON.stringify(backupData));
+                    
+                    data = {
+                        clients: [],
+                        cartes: [],
+                        achats: [],
+                        cadeaux: [],
+                        utilisateurs: [],
+                        journal: [],
+                        notifications: [],
+                        nextClientId: 1,
+                        nextCarteId: 1,
+                        nextAchatId: 1,
+                        nextUserId: 1,
+                        nextNotifId: 1
+                    };
+                    
+                    initializeDefaultUsers();
+                    
+                    ajouterJournal('systeme', 'Réinitialisation', 'Toutes les données ont été réinitialisées');
+                    rafraichirInterface();
+                    
+                    ajouterNotification('[delete] Réinitialisation', 'Toutes les données ont été réinitialisées. Une sauvegarde a été créée.', 'warning');
+                    alert('<span class="material-icons">check_circle</span> Toutes les données ont été réinitialisées.');
+                }
+            }
+        }
+
+        // ==================== PROFIL ====================
+        function loadProfile() {
+            const profileInfo = document.getElementById('profileInfo');
+            if (!profileInfo || !currentUser) return;
+            
+            const user = data.utilisateurs.find(u => u.id === currentUser.id);
+            if (!user) return;
+            
+            profileInfo.innerHTML = `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nom complet</label>
+                        <input type="text" value="${user.nom}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Nom d'utilisateur</label>
+                        <input type="text" value="${user.username}" disabled>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rôle</label>
+                        <input type="text" value="${CONFIG.ROLES[user.role]?.name || user.role}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Boutique</label>
+                        <input type="text" value="${user.boutique || 'Non assigné'}" disabled>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Date de création</label>
+                        <input type="text" value="${new Date(user.dateCreation).toLocaleDateString('fr-FR')}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Dernière connexion</label>
+                        <input type="text" value="${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('fr-FR') : 'Jamais'}" disabled>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Permissions</label>
+                    <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                        ${user.permissions.map(p => `<span class="badge badge-info" style="margin: 2px;">${CONFIG.PERMISSIONS_LIST[p] || p}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showChangePasswordForm() {
+            document.getElementById('changePasswordForm').style.display = 'block';
+        }
+
+        function hideChangePasswordForm() {
+            document.getElementById('changePasswordForm').style.display = 'none';
+            document.getElementById('passwordForm').reset();
+        }
+
+        function changerMotDePasse(e) {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            const user = data.utilisateurs.find(u => u.id === currentUser.id);
+            
+            if (!user || user.password !== currentPassword) {
+                alert('Mot de passe actuel incorrect!');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('Le nouveau mot de passe doit contenir au moins 6 caractères!');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('Les nouveaux mots de passe ne correspondent pas!');
+                return;
+            }
+            
+            user.password = newPassword;
+            sauvegarderDonnees();
+            hideChangePasswordForm();
+            
+            ajouterJournal('utilisateur', 'Changement mot de passe', 'Mot de passe changé');
+            ajouterNotification('Mot de passe changé', 'Votre mot de passe a été mis à jour avec succès.', 'success');
+            alert('<span class="material-icons">check_circle</span> Mot de passe changé avec succès!');
+        }
+
+        // Ajout des styles d'animation pour les toasts
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialisation
+        console.log('Système VIP Nanawax initialisé');
+        console.log('Identifiants de test:');
+        console.log('- Admin: admin / admin123');
+        console.log('- Manager: manager / manager123');
+        console.log('- Vendeur: vendeur / vendeur123 (boutique: Cotonou)');
+    </script>
+</body>
+</html>

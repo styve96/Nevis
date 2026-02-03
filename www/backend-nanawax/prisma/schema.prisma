@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  BOUTIQUE
+  VENDEUR
+}
+
+enum ClientStatut {
+  ACTIF
+  INACTIF
+}
+
+enum CarteStatut {
+  EN_COURS
+  COMPLETEE
+}
+
+enum CadeauStatut {
+  EN_ATTENTE
+  REMIS
+  ANNULE
+}
+
+model User {
+  id                  Int      @id @default(autoincrement())
+  nom                 String   @db.VarChar(100)
+  username            String   @unique @db.VarChar(50)
+  passwordHash        String   @db.VarChar(255)
+  role                Role
+  boutique            String?  @db.VarChar(50)
+  permissions         String[] @db.VarChar(50)
+  dateCreation        DateTime @default(now())
+  lastLogin           DateTime?
+  statut              String   @default("Actif") @db.VarChar(20)
+  createdBy           String?  @db.VarChar(50)
+  journalEntries      Journal[]
+  notifications       Notification[]
+  achatsEnregistres   Achat[]  @relation("AchatUser")
+  
+  @@index([username])
+  @@index([role])
+}
+
+model Client {
+  id                  Int       @id @default(autoincrement())
+  nom                 String    @db.VarChar(100)
+  telephone           String    @unique @db.VarChar(20)
+  email               String?   @db.VarChar(100)
+  boutique            String    @db.VarChar(50)
+  numFacture          String    @db.VarChar(50)
+  montantFacture      Float
+  dateInscription     DateTime  @default(now())
+  cartesCompletees    Int       @default(0)
+  statut              ClientStatut @default(ACTIF)
+  notes               String?   @db.Text
+  dateCreation        DateTime  @default(now())
+  createdBy           String    @db.VarChar(50)
+  
+  cartes              Carte[]
+  achats              Achat[]
+  cadeaux             Cadeau[]
+  journalEntries      Journal[]
+  
+  @@index([telephone])
+  @@index([boutique])
+  @@index([dateInscription])
+}
+
+model Carte {
+  id                  Int      @id @default(autoincrement())
+  numeroCarte         Int
+  dateCreation        DateTime @default(now())
+  dateCreationISO     DateTime @default(now())
+  cases               Boolean[]
+  statut              CarteStatut @default(EN_COURS)
+  derniereCase        DateTime?
+  
+  clientId            Int
+  client              Client   @relation(fields: [clientId], references: [id])
+  achats              Achat[]
+  cadeaux             Cadeau[]
+  
+  @@unique([clientId, numeroCarte])
+  @@index([clientId])
+  @@index([statut])
+}
+
+model Achat {
+  id                  Int      @id @default(autoincrement())
+  date                DateTime @default(now())
+  dateISO             DateTime @default(now())
+  boutique            String   @db.VarChar(50)
+  numFacture          String   @db.VarChar(50)
+  montant             Float
+  produits            String?  @db.Text
+  eligible            Boolean  @default(false)
+  vendeur             String   @db.VarChar(100)
+  carteId             Int?
+  casecochee          Int?
+  
+  clientId            Int
+  client              Client   @relation(fields: [clientId], references: [id])
+  carte               Carte?   @relation(fields: [carteId], references: [id])
+  registeredById      Int?
+  registeredBy        User?    @relation("AchatUser", fields: [registeredById], references: [id])
+  
+  @@index([clientId])
+  @@index([dateISO])
+  @@index([boutique])
+  @@index([numFacture])
+  @@unique([numFacture, boutique])
+}
+
+model Cadeau {
+  id                  Int          @id @default(autoincrement())
+  date                DateTime     @default(now())
+  dateISO             DateTime     @default(now())
+  cadeau              String       @db.VarChar(100)
+  choisiPar           String       @db.VarChar(50)
+  notes               String?      @db.Text
+  statut              CadeauStatut @default(EN_ATTENTE)
+  attribuePar         String       @db.VarChar(100)
+  dateRemise          DateTime?
+  
+  clientId            Int
+  client              Client       @relation(fields: [clientId], references: [id])
+  carteId             Int
+  carte               Carte        @relation(fields: [carteId], references: [id])
+  
+  @@index([clientId])
+  @@index([statut])
+  @@index([dateISO])
+}
+
+model Journal {
+  id                  Int      @id @default(autoincrement())
+  type                String   @db.VarChar(20)
+  action              String   @db.VarChar(50)
+  details             String   @db.Text
+  timestamp           DateTime @default(now())
+  
+  userId              Int?
+  user                User?    @relation(fields: [userId], references: [id])
+  clientId            Int?
+  client              Client?  @relation(fields: [clientId], references: [id])
+  
+  @@index([type])
+  @@index([timestamp])
+  @@index([userId])
+}
+
+model Notification {
+  id                  Int      @id @default(autoincrement())
+  titre               String   @db.VarChar(100)
+  message             String   @db.Text
+  type                String   @db.VarChar(20) @default("info")
+  lue                 Boolean  @default(false)
+  date                DateTime @default(now())
+  
+  userId              Int
+  user                User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([lue])
+  @@index([date])
+}
+
+model Backup {
+  id                  Int      @id @default(autoincrement())
+  nom                 String   @db.VarChar(100)
+  type                String   @db.VarChar(20)
+  taille              Int
+  dateCreation        DateTime @default(now())
+  createur            String   @db.VarChar(100)
+  chemin              String   @db.VarChar(255)
+  
+  @@index([dateCreation])
+}
